@@ -9,7 +9,7 @@ Usage
 1. Include the `WDS_Taxonomy_Radio.class.php` file from within your plugin or theme
 2. Initialize the class (update the taxonomy slug with your own): `$custom_tax_mb = new WDS_Taxonomy_Radio( 'custom-tax-slug' );`
 3. Update optional class properties like:
-  1. `$custom_tax_mb->priority = 'low';`
-  2. `$custom_tax_mb->context = 'normal';`
-  3. `$custom_tax_mb->metabox_title = __( 'Custom Metabox Title', 'yourtheme' );`
-  4. `$custom_tax_mb->force_selection = true;`
+  * `$custom_tax_mb->priority = 'low';`
+  * `$custom_tax_mb->context = 'normal';`
+  * `$custom_tax_mb->metabox_title = __( 'Custom Metabox Title', 'yourtheme' );`
+  * `$custom_tax_mb->force_selection = true;`
