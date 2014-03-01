@@ -42,6 +42,9 @@ if ( !class_exists( 'WDS_Taxonomy_Radio' ) ) {
 			 * Removes and replaces the built-in taxonomy metabox with our own.
 			 */
 			public function add_radio_box() {
+				 //test the taxonomy slug construtor is an actual taxonomy
+				 if ( !$this->taxonomy() ) return;
+			
 				 foreach ( $this->post_types() as $key => $cpt ) {
 						// remove default category type metabox
 						remove_meta_box( $this->slug .'div', $cpt, 'side' );
@@ -132,7 +135,9 @@ if ( !class_exists( 'WDS_Taxonomy_Radio' ) ) {
 
 	 }
 
-	 $custom_tax_mb = new WDS_Taxonomy_Radio( 'custom-tax-slug' );
+	 // Usage:
+
+	 // $custom_tax_mb = new WDS_Taxonomy_Radio( 'custom-tax-slug' );
 
 	 // Update optional properties
 
