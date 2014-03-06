@@ -1,6 +1,8 @@
 WDS_Taxonomy_Radio
 ==================
 
+Version: 0.1.2
+
 Removes and replaces the built-in taxonomy metabox with our radio-select metabox. http://webdevstudios.com/2013/07/08/replace-wordpress-default-taxonomy-metabox-with-a-radio-select-metabox/
 
 Usage
@@ -13,3 +15,4 @@ Usage
   * `$custom_tax_mb->context = 'normal';`
   * `$custom_tax_mb->metabox_title = __( 'Custom Metabox Title', 'yourtheme' );`
   * `$custom_tax_mb->force_selection = true;`
+  * `$custom_tax_mb->indented = false;`
