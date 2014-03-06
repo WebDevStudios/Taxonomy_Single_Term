@@ -123,9 +123,11 @@ class WDS_Taxonomy_Radio {
 
 		require_once( 'WDS_Taxonomy_Radio_Walker.php' );
 
-		$class = $this->indented ? $this->slug .'div' : $this->slug .'div-not-indented';
+		$class = $this->indented ? 'categorydiv' : 'not-indented';
+		$class .= 'category' !== $this->slug ? ' '. $this->slug .'div' : '';
+		$class .= ' tabs-panel';
 		?>
-		<div class="<?php echo $class; ?> tabs-panel" style="margin-bottom: 5px;">
+		<div class="<?php echo $class; ?>" style="margin-bottom: 5px;">
 			<ul id="<?php echo $this->slug; ?>checklist" data-wp-lists="list:<?php echo $this->slug?>" class="categorychecklist form-no-clear">
 				<?php wp_terms_checklist( get_the_ID(), array(
 					'taxonomy'      => $this->slug,
