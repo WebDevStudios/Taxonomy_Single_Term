@@ -17,30 +17,35 @@ if ( ! class_exists( 'WDS_Taxonomy_Radio' ) ) :
  * $custom_tax_mb->indented = false;
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
+ * @version  0.1.2
  */
 class WDS_Taxonomy_Radio {
 
 	/**
 	 * Post types where metabox should be replaced (defaults to all post_types associated with taxonomy)
 	 * @var array
+	 * @since 0.1.0
 	 */
 	public $post_types = array();
 
 	/**
 	 * Taxonomy slug
 	 * @var string
+	 * @since 0.1.0
 	 */
 	public $slug = '';
 
 	/**
 	 * Taxonomy object
 	 * @var object
+	 * @since 0.1.0
 	 */
 	public $taxonomy = false;
 
 	/**
 	 * New metabox title. Defaults to Taxonomy name
 	 * @var string
+	 * @since 0.1.0
 	 */
 	public $metabox_title = '';
 
@@ -48,6 +53,7 @@ class WDS_Taxonomy_Radio {
 	 * Metabox priority. (vertical placement)
 	 * 'high', 'core', 'default' or 'low'
 	 * @var string
+	 * @since 0.1.0
 	 */
 	public $priority = 'high';
 
@@ -55,18 +61,21 @@ class WDS_Taxonomy_Radio {
 	 * Metabox position. (column placement)
 	 * 'normal', 'advanced', or 'side'
 	 * @var string
+	 * @since 0.1.0
 	 */
 	public $context = 'side';
 
 	/**
 	 * Set to true to hide "None" option & force a term selection
 	 * @var boolean
+	 * @since 0.1.1
 	 */
 	public $force_selection = false;
 
 	/**
 	 * Whether hierarchical taxonomy inputs should be indented to represent hierarchy
 	 * @var boolean
+	 * @since 0.1.2
 	 */
 	public $indented = true;
 
@@ -74,6 +83,7 @@ class WDS_Taxonomy_Radio {
 	 * Initiates our metabox action
 	 * @param string $tax_slug      Taxonomy slug
 	 * @param array  $post_types    post-types to display custom metabox
+	 * @since 0.1.0
 	 */
 	public function __construct( $tax_slug, $post_types = array() ) {
 
@@ -85,6 +95,7 @@ class WDS_Taxonomy_Radio {
 
 	/**
 	 * Removes and replaces the built-in taxonomy metabox with our own.
+	 * @since 0.1.0
 	 */
 	public function add_radio_box() {
 		// test the taxonomy slug construtor is an actual taxonomy
@@ -103,6 +114,7 @@ class WDS_Taxonomy_Radio {
 
 	/**
 	 * Displays our taxonomy radio box metabox
+	 * @since 0.1.0
 	 */
 	public function radio_box() {
 
@@ -129,6 +141,7 @@ class WDS_Taxonomy_Radio {
 	/**
 	 * Gets the taxonomy object from the slug
 	 * @return object Taxonomy object
+	 * @since 0.1.0
 	 */
 	public function taxonomy() {
 		$this->taxonomy = $this->taxonomy ? $this->taxonomy : get_taxonomy( $this->slug );
@@ -138,6 +151,7 @@ class WDS_Taxonomy_Radio {
 	/**
 	 * Gets the taxonomy's associated post_types
 	 * @return array Taxonomy's associated post_types
+	 * @since 0.1.0
 	 */
 	public function post_types() {
 		$this->post_types = !empty( $this->post_types ) ? $this->post_types : $this->taxonomy()->object_type;
@@ -147,6 +161,7 @@ class WDS_Taxonomy_Radio {
 	/**
 	 * Gets the metabox title from the taxonomy object's labels (or uses the passed in title)
 	 * @return string Metabox title
+	 * @since 0.1.0
 	 */
 	public function metabox_title() {
 		$this->metabox_title = !empty( $this->metabox_title ) ? $this->metabox_title : $this->taxonomy()->labels->name;

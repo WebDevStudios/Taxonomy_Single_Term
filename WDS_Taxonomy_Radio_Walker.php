@@ -3,12 +3,12 @@
 if ( ! class_exists( 'WDS_Taxonomy_Radio_Walker' ) && class_exists( 'Walker' ) ) :
 
 /**
- * Walker to output an unordered list of category checkbox <input> elements.
+ * Walker to output an unordered list of taxonomy radio <input> elements.
  *
  * @see Walker
  * @see wp_category_checklist()
  * @see wp_terms_checklist()
- * @since 2.5.1
+ * @since 0.1.2
  */
 class WDS_Taxonomy_Radio_Walker extends Walker {
 	var $tree_type = 'category';
@@ -23,7 +23,7 @@ class WDS_Taxonomy_Radio_Walker extends Walker {
 	 *
 	 * @see Walker:start_lvl()
 	 *
-	 * @since 2.5.1
+	 * @since 0.1.2
 	 *
 	 * @param string $output Passed by reference. Used to append additional content.
 	 * @param int    $depth  Depth of category. Used for tab indentation.
@@ -39,7 +39,7 @@ class WDS_Taxonomy_Radio_Walker extends Walker {
 	 *
 	 * @see Walker::end_lvl()
 	 *
-	 * @since 2.5.1
+	 * @since 0.1.2
 	 *
 	 * @param string $output Passed by reference. Used to append additional content.
 	 * @param int    $depth  Depth of category. Used for tab indentation.
@@ -55,7 +55,7 @@ class WDS_Taxonomy_Radio_Walker extends Walker {
 	 *
 	 * @see Walker::start_el()
 	 *
-	 * @since 2.5.1
+	 * @since 0.1.2
 	 *
 	 * @param string $output   Passed by reference. Used to append additional content.
 	 * @param object $category The current term object.
@@ -89,7 +89,7 @@ class WDS_Taxonomy_Radio_Walker extends Walker {
 	 *
 	 * @see Walker::end_el()
 	 *
-	 * @since 2.5.1
+	 * @since 0.1.2
 	 *
 	 * @param string $output   Passed by reference. Used to append additional content.
 	 * @param object $category The current term object.
