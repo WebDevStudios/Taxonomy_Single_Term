@@ -123,7 +123,7 @@ class WDS_Taxonomy_Radio {
 
 		require_once( 'WDS_Taxonomy_Radio_Walker.php' );
 
-		$class = $this->indented ? 'categorydiv' : 'not-indented';
+		$class = $this->indented ? 'taxonomydiv' : 'not-indented';
 		$class .= 'category' !== $this->slug ? ' '. $this->slug .'div' : '';
 		$class .= ' tabs-panel';
 		?>
