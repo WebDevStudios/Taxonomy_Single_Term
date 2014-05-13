@@ -17,7 +17,7 @@ if ( ! class_exists( 'WDS_Taxonomy_Radio' ) ) :
  * $custom_tax_mb->indented = false;
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
- * @version  0.1.2
+ * @version  0.1.3
  */
 class WDS_Taxonomy_Radio {
 
@@ -91,6 +91,7 @@ class WDS_Taxonomy_Radio {
 		$this->post_types = is_array( $post_types ) ? $post_types : array( $post_types );
 
 		add_action( 'add_meta_boxes', array( $this, 'add_radio_box' ) );
+		add_action( 'admin_footer', array( $this, 'js_checkbox_transform' ) );
 	}
 
 	/**
@@ -127,7 +128,7 @@ class WDS_Taxonomy_Radio {
 		$class .= 'category' !== $this->slug ? ' '. $this->slug .'div' : '';
 		$class .= ' tabs-panel';
 		?>
-		<div class="<?php echo $class; ?>" style="margin-bottom: 5px;">
+		<div id="taxonomy-<?php echo $this->slug; ?>" class="<?php echo $class; ?>" style="margin-bottom: 5px;">
 			<ul id="<?php echo $this->slug; ?>checklist" data-wp-lists="list:<?php echo $this->slug?>" class="categorychecklist form-no-clear">
 				<?php wp_terms_checklist( get_the_ID(), array(
 					'taxonomy'      => $this->slug,
@@ -138,6 +139,43 @@ class WDS_Taxonomy_Radio {
 		</div>
 		<?php
 
+	}
+
+	/**
+	 * Add some JS to the post listing page to transform the quickedit inputs
+	 * @since  0.1.3
+	 */
+	public function js_checkbox_transform() {
+		$screen = get_current_screen();
+		$taxonomy = $this->taxonomy();
+
+		if (
+			empty( $taxonomy ) || empty( $screen )
+			|| ! isset( $taxonomy->object_type )
+			|| ! isset( $screen->post_type )
+			|| ! in_array( $screen->post_type, $taxonomy->object_type )
+		)
+			return;
+
+		?>
+		<script type="text/javascript">
+			jQuery(document).ready(function($){
+				$('.editinline').on( 'click', function( evt ) {
+					var $this = $(this);
+					setTimeout( function() {
+						var $editRow = $this.parents( 'tr' ).next();
+						var $taxListInputs = $editRow.find( '.<?php echo $this->slug; ?>-checklist li input' );
+						if ( $taxListInputs.length ) {
+							// loop and switch input types
+							$taxListInputs.each( function() {
+								$(this).attr( 'type', 'radio' );
+							});
+						}
+					}, 50 );
+				});
+			});
+		</script>
+		<?php
 	}
 
 	/**
