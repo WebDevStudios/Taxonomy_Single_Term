@@ -173,13 +173,24 @@ class Taxonomy_Single_Term {
 		$class .= ' tabs-panel';
 		?>
 		<div id="taxonomy-<?php echo $this->slug; ?>" class="<?php echo $class; ?>" style="margin-bottom: 5px;">
-			<ul id="<?php echo $this->slug; ?>checklist" data-wp-lists="list:<?php echo $this->slug?>" class="categorychecklist form-no-clear">
+			<?php if ( 'radio' == $this->input_el ) : ?>
+				<ul id="<?php echo $this->slug; ?>checklist" data-wp-lists="list:<?php echo $this->slug?>" class="categorychecklist form-no-clear">
+			<?php else : $tax_name = 'category' == $this->slug ? 'post_category' : 'tax_input[' . $this->slug . ']'; ?>
+				<select name="<?php echo $tax_name; ?>" id="<?php echo $this->slug; ?>checklist" class="form-no-clear">
+					<?php if ( ! $this->force_selection ) : ?>
+						<option value="0"><?php echo esc_html( apply_filters( 'taxonomy_single_term_select_none', __( '- Select One -' ) ) ); ?></option>
+					<?php endif; ?>
+			<?php endif; ?>
 				<?php wp_terms_checklist( get_the_ID(), array(
 					'taxonomy'      => $this->slug,
 					'checked_ontop' => false,
 					'walker'        => new Taxonomy_Single_Term_Walker( $this->taxonomy()->hierarchical, $this->input_el ),
 				) ) ?>
-			</ul>
+			<?php if ( 'radio' == $this->input_el ) : ?>
+				</ul>
+			<?php else : ?>
+				</select>
+			<?php endif; ?>
 		</div>
 		<?php
 
@@ -245,6 +256,7 @@ class Taxonomy_Single_Term {
 						changeToRadio( $editRow );
 					}, 50 );
 				});
+
 			});
 		</script>
 		<?php
