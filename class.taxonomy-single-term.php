@@ -1,12 +1,12 @@
 <?php
 
-if ( ! class_exists( 'WDS_Taxonomy_Radio' ) ) :
+if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
 /**
- * Removes and replaces the built-in taxonomy metabox with our radio-select metabox.
+ * Removes and replaces the built-in taxonomy metabox with <select> or series of <input type="radio" />
  *
  * Usage:
  *
- * $custom_tax_mb = new WDS_Taxonomy_Radio( 'custom-tax-slug' );
+ * $custom_tax_mb = new Taxonomy_Single_Term( 'custom-tax-slug', 'type' ); // 'type' can be 'radio' or 'select' (default: radio)
  *
  * Update optional properties:
  *
@@ -19,7 +19,7 @@ if ( ! class_exists( 'WDS_Taxonomy_Radio' ) ) :
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
  * @version  0.1.4
  */
-class WDS_Taxonomy_Radio {
+class Taxonomy_Single_Term {
 
 	/**
 	 * Post types where metabox should be replaced (defaults to all post_types associated with taxonomy)
@@ -92,17 +92,24 @@ class WDS_Taxonomy_Radio {
 	public $single_term_set = array();
 
 	/**
+	 * What input element to use in the taxonomy meta box (radio or select)
+	 * @var array
+	 */
+	public $input_el = 'radio';
+
+	/**
 	 * Initiates our metabox action
 	 * @param string $tax_slug      Taxonomy slug
 	 * @param array  $post_types    post-types to display custom metabox
 	 * @since 0.1.0
 	 */
-	public function __construct( $tax_slug, $post_types = array() ) {
+	public function __construct( $tax_slug, $post_types = array(), $type = 'radio' ) {
 
 		$this->slug = $tax_slug;
 		$this->post_types = is_array( $post_types ) ? $post_types : array( $post_types );
+		$this->input_el = in_array( (string) $type, array( 'radio', 'select' ) ) ? $type : $this->input_el;
 
-		add_action( 'add_meta_boxes', array( $this, 'add_radio_box' ) );
+		add_action( 'add_meta_boxes', array( $this, 'add_input_el' ) );
 		add_action( 'admin_footer', array( $this, 'js_checkbox_transform' ) );
 
 		// Handle bulk-editing
@@ -135,7 +142,7 @@ class WDS_Taxonomy_Radio {
 	 * Removes and replaces the built-in taxonomy metabox with our own.
 	 * @since 0.1.0
 	 */
-	public function add_radio_box() {
+	public function add_input_el() {
 		// test the taxonomy slug construtor is an actual taxonomy
 		if ( ! $this->taxonomy() )
 			return;
@@ -146,20 +153,20 @@ class WDS_Taxonomy_Radio {
 			// remove default tag type metabox
 			remove_meta_box( 'tagsdiv-'.$this->slug, $cpt, 'side' );
 			// add our custom radio box
-			add_meta_box( $this->slug .'_radio', $this->metabox_title(), array( $this, 'radio_box' ), $cpt, $this->context, $this->priority );
+			add_meta_box( $this->slug .'_input_el', $this->metabox_title(), array( $this, 'input_el' ), $cpt, $this->context, $this->priority );
 		}
 	}
 
 	/**
-	 * Displays our taxonomy radio box metabox
+	 * Displays our taxonomy input metabox
 	 * @since 0.1.0
 	 */
-	public function radio_box() {
+	public function input_el() {
 
 		// uses same noncename as default box so no save_post hook needed
 		wp_nonce_field( 'taxonomy_'. $this->slug, 'taxonomy_noncename' );
 
-		require_once( 'WDS_Taxonomy_Radio_Walker.php' );
+		require_once( 'walker.taxonomy-single-term.php' );
 
 		$class = $this->indented ? 'taxonomydiv' : 'not-indented';
 		$class .= 'category' !== $this->slug ? ' '. $this->slug .'div' : '';
@@ -170,7 +177,7 @@ class WDS_Taxonomy_Radio {
 				<?php wp_terms_checklist( get_the_ID(), array(
 					'taxonomy'      => $this->slug,
 					'checked_ontop' => false,
-					'walker'        => new WDS_Taxonomy_Radio_Walker( $this->taxonomy()->hierarchical ),
+					'walker'        => new Taxonomy_Single_Term_Walker( $this->taxonomy()->hierarchical, $this->input_el ),
 				) ) ?>
 			</ul>
 		</div>
