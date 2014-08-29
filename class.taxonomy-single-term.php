@@ -6,7 +6,7 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  *
  * Usage:
  *
- * $custom_tax_mb = new Taxonomy_Single_Term( 'custom-tax-slug', 'type' ); // 'type' can be 'radio' or 'select' (default: radio)
+ * $custom_tax_mb = new Taxonomy_Single_Term( 'custom-tax-slug', array( 'post_type' ), 'type' ); // 'type' can be 'radio' or 'select' (default: radio)
  *
  * Update optional properties:
  *
@@ -171,14 +171,22 @@ class Taxonomy_Single_Term {
 		$class = $this->indented ? 'taxonomydiv' : 'not-indented';
 		$class .= 'category' !== $this->slug ? ' '. $this->slug .'div' : '';
 		$class .= ' tabs-panel';
+
+		$tax_name = 'category' == $this->slug ? 'post_category' : 'tax_input[' . $this->slug . ']';
+		$tax_name = $this->taxonomy()->hierarchical ? $tax_name . '[]' : $tax_name;
 		?>
-		<div id="taxonomy-<?php echo $this->slug; ?>" class="<?php echo $class; ?>" style="margin-bottom: 5px;">
+		<div id="taxonomy-<?php echo $this->slug; ?>" class="<?php echo $class; ?>"<?php if ( 'select' == $this->input_el ) : ?> style="padding-top: 5px;"<?php endif; ?>>
 			<?php if ( 'radio' == $this->input_el ) : ?>
 				<ul id="<?php echo $this->slug; ?>checklist" data-wp-lists="list:<?php echo $this->slug?>" class="categorychecklist form-no-clear">
-			<?php else : $tax_name = 'category' == $this->slug ? 'post_category' : 'tax_input[' . $this->slug . ']'; ?>
+					<?php if ( ! $this->force_selection ) : ?>
+						<li style="display:none;">
+							<input id="taxonomy-<?php echo $this->slug; ?>-clear" type="radio" name="<?php echo $tax_name; ?>" value="0" />
+						</li>
+					<?php endif; ?>
+			<?php else : ?>
 				<select name="<?php echo $tax_name; ?>" id="<?php echo $this->slug; ?>checklist" class="form-no-clear">
 					<?php if ( ! $this->force_selection ) : ?>
-						<option value="0"><?php echo esc_html( apply_filters( 'taxonomy_single_term_select_none', __( '- Select One -' ) ) ); ?></option>
+						<option value="0"><?php echo esc_html( apply_filters( 'taxonomy_single_term_select_none', __( 'None' ) ) ); ?></option>
 					<?php endif; ?>
 			<?php endif; ?>
 				<?php wp_terms_checklist( get_the_ID(), array(
@@ -188,6 +196,16 @@ class Taxonomy_Single_Term {
 				) ) ?>
 			<?php if ( 'radio' == $this->input_el ) : ?>
 				</ul>
+				<p style="margin-bottom:0;"><a class="button" id="taxonomy-<?php echo $this->slug; ?>-trigger-clear" href="#"><?php _e( 'Clear Selection' ); ?></a></p>
+				<script type="text/javascript">
+					jQuery(document).ready(function($){
+						$('#taxonomy-<?php echo $this->slug; ?>-trigger-clear').click(function(){
+							$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
+							$('#taxonomy-<?php echo $this->slug; ?>-clear').prop( 'checked', true );
+							return false;
+						});
+					});
+				</script>
 			<?php else : ?>
 				</select>
 			<?php endif; ?>

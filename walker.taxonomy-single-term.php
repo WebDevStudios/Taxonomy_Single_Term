@@ -14,10 +14,9 @@ class Taxonomy_Single_Term_Walker extends Walker {
 	var $tree_type = 'category';
 	var $db_fields = array ('parent' => 'parent', 'id' => 'term_id'); //TODO: decouple this
 
-	function __construct( $hierarchical, $input_el, $force_selection ) {
+	function __construct( $hierarchical, $input_el ) {
 		$this->hierarchical = $hierarchical;
 		$this->input_el = $input_el;
-		$this->force_selection = is_bool( $force_selection ) ? $force_selection : true;
 	}
 
 	/**
@@ -114,7 +113,11 @@ class Taxonomy_Single_Term_Walker extends Walker {
 	 * @param array  $args     An array of arguments. @see wp_terms_checklist()
 	 */
 	function end_el( &$output, $category, $depth = 0, $args = array() ) {
-		$output .= "</option>\n";
+		if ( 'radio' == $this->input_el ) {
+			$output .= "</li>\n";
+		} else {
+			$output .= "</option>\n";
+		}
 	}
 }
 
