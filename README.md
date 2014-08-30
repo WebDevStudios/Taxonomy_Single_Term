@@ -1,7 +1,7 @@
 Taxonomy_Single_Term
 ==================
 
-Version: 0.2.0
+Version: 0.2.1
 
 Taxonomies in WordPress are super powerful. The purpose of taxonomies is to create relationships among post types. Unfortunately the UI doesn't effectively enforce limiting to a single term.
 
@@ -41,6 +41,10 @@ $custom_tax_mb->set( 'allow_new_terms', true );
 ```
 
 #### Change Log
+**0.2.1**
+* Add setter method. Props [@JustinSainton](https://github.com/JustinSainton)
+* Add getter magic method for retrieving properties
+
 **0.2.0**
 * Ability to choose Select elements vs Radios. Props [@jchristopher](https://github.com/jchristopher)
 * Rename plugin. Props [@jchristopher](https://github.com/jchristopher)

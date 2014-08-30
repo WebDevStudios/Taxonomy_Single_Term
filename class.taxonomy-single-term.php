@@ -18,7 +18,8 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  * $custom_tax_mb->set( 'allow_new_terms', true );
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
- * @version  0.2.0
+ * @link  https://github.com/WebDevStudios/Taxonomy_Single_Term/blob/master/README.md
+ * @version  0.2.1
  */
 class Taxonomy_Single_Term {
 
