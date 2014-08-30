@@ -20,11 +20,24 @@ Usage
 1. Second parameter is an array of post\_types and the third parameter is either 'radio', or 'select' (defaulting to radio)\*. To use a `select` type on the `foo` post\_type:
 	`$custom_tax_mb = new Taxonomy_Single_Term( 'custom-tax-slug', array( 'foo' ), 'select' );`
 2. Update optional class properties like:
-  * `$custom_tax_mb->priority = 'low'; // Priority of the metabox placement.`
-  * `$custom_tax_mb->context = 'normal'; // 'normal' to move it under the post content.`
-  * `$custom_tax_mb->metabox_title = __( 'Custom Metabox Title', 'yourtheme' ); // Custom title for your metabox`
-  * `$custom_tax_mb->force_selection = true; // Makes a selection required.`
-  * `$custom_tax_mb->indented = false; // Will keep radio elements from indenting for child-terms.`
-  * \*`$custom_tax_mb->allow_new_terms = true; // Allows adding of new terms from the metabox.`
+```php
+// Priority of the metabox placement.
+$custom_tax_mb->priority = 'low';
+
+// 'normal' to move it under the post content.
+$custom_tax_mb->context = 'normal';
+
+// Custom title for your metabox
+$custom_tax_mb->metabox_title = __( 'Custom Metabox Title', 'yourtheme' );
+
+// Makes a selection required.
+$custom_tax_mb->force_selection = true;
+
+// Will keep radio elements from indenting for child-terms.
+$custom_tax_mb->indented = false; 
+
+// Allows adding of new terms from the metabox *
+$custom_tax_mb->allow_new_terms = true; 
+```
 
 _\* Props [@jchristopher](https://github.com/jchristopher)_
