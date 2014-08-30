@@ -15,6 +15,7 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  * $custom_tax_mb->metabox_title = __( 'Custom Metabox Title', 'yourtheme' );
  * $custom_tax_mb->force_selection = true;
  * $custom_tax_mb->indented = false;
+ * $custom_tax_mb->allow_new_terms = true;
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
  * @version  0.2
@@ -96,6 +97,12 @@ class Taxonomy_Single_Term {
 	 * @var array
 	 */
 	public $input_el = 'radio';
+
+	/**
+	 * Whether adding new terms via the metabox is permitted
+	 * @var boolean
+	 */
+	public $allow_new_terms = false;
 
 	/**
 	 * Initiates our metabox action
@@ -213,39 +220,41 @@ class Taxonomy_Single_Term {
 			<?php else : ?>
 				</select>
 			<?php endif; ?>
-			<p style="margin-bottom:0;float:right;width:50%;text-align:right;">
-				<a id="taxonomy-<?php echo $this->slug; ?>-new" href="#"<?php if ( 'radio' == $this->input_el ) : ?> style="display:inline-block;margin-top:0.4em;"<?php endif; ?>><?php _e( 'Add New' ); ?></a>
-			</p>
-			<div style="clear:both;"></div>
-			<script type="text/javascript">
-				jQuery(document).ready(function($){
-					$('#taxonomy-<?php echo $this->slug; ?>-new').click(function(){
-						var term = prompt( "Add New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>", "New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>" );
-						if(term != null) {
-							var data = {
-								'action': 'taxonomy_single_term_add',
-								'term': term,
-								'taxonomy': '<?php echo $this->slug; ?>',
-								'nonce': '<?php echo wp_create_nonce( 'taxonomy_'. $this->slug, '_add_term' ); ?>'
-							};
-							$.post(ajaxurl, data, function(response) {
-								console.log(response);
-								if('0'!==response){
-									<?php if ( 'radio' == $this->input_el ) : ?>
-										$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
-										$('#<?php echo $this->slug; ?>checklist').append(response);
-									<?php else : ?>
-										$('#taxonomy-<?php echo $this->slug; ?> option').prop( 'selected', false );
-										$('#<?php echo $this->slug; ?>checklist').append(response);
-									<?php endif; ?>
-								}else{
-									alert('<?php echo __( 'There was a problem adding a new ' ) . esc_attr( $this->taxonomy()->labels->singular_name ); ?>');
-								}
-							});
-						}
+			<?php if ( $this->allow_new_terms ) : ?>
+				<p style="margin-bottom:0;float:right;width:50%;text-align:right;">
+					<a id="taxonomy-<?php echo $this->slug; ?>-new" href="#"<?php if ( 'radio' == $this->input_el ) : ?> style="display:inline-block;margin-top:0.4em;"<?php endif; ?>><?php _e( 'Add New' ); ?></a>
+				</p>
+				<script type="text/javascript">
+					jQuery(document).ready(function($){
+						$('#taxonomy-<?php echo $this->slug; ?>-new').click(function(){
+							var term = prompt( "Add New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>", "New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>" );
+							if(term != null) {
+								var data = {
+									'action': 'taxonomy_single_term_add',
+									'term': term,
+									'taxonomy': '<?php echo $this->slug; ?>',
+									'nonce': '<?php echo wp_create_nonce( 'taxonomy_'. $this->slug, '_add_term' ); ?>'
+								};
+								$.post(ajaxurl, data, function(response) {
+									console.log(response);
+									if('0'!==response){
+										<?php if ( 'radio' == $this->input_el ) : ?>
+											$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
+											$('#<?php echo $this->slug; ?>checklist').append(response);
+										<?php else : ?>
+											$('#taxonomy-<?php echo $this->slug; ?> option').prop( 'selected', false );
+											$('#<?php echo $this->slug; ?>checklist').append(response);
+										<?php endif; ?>
+									}else{
+										alert('<?php echo __( 'There was a problem adding a new ' ) . esc_attr( $this->taxonomy()->labels->singular_name ); ?>');
+									}
+								});
+							}
+						});
 					});
-				});
-			</script>
+				</script>
+			<?php endif; ?>
+			<div style="clear:both;"></div>
 		</div>
 		<?php
 	}
@@ -260,7 +269,7 @@ class Taxonomy_Single_Term {
 		$taxonomy   = isset( $_POST['taxonomy'] ) ? sanitize_text_field( $_POST['taxonomy'] ) : false;
 		$return     = 0;
 
-		if ( wp_verify_nonce( $nonce, 'taxonomy_'. $this->slug, '_add_term' ) && taxonomy_exists( $taxonomy ) && empty( term_exists( $term, $taxonomy ) ) ) {
+		if ( $this->allow_new_terms && wp_verify_nonce( $nonce, 'taxonomy_'. $this->slug, '_add_term' ) && taxonomy_exists( $taxonomy ) && empty( term_exists( $term, $taxonomy ) ) ) {
 			$term_id = wp_insert_term( $term, $taxonomy );
 			if ( ! is_wp_error( $term_id ) ) {
 				$return = true;
@@ -279,6 +288,7 @@ class Taxonomy_Single_Term {
 			echo $return;
 		}
 
+		// standard to die after AJAX callbacks
 		die();
 	}
 
