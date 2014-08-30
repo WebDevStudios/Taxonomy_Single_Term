@@ -24,98 +24,99 @@ class Taxonomy_Single_Term {
 
 	/**
 	 * Post types where metabox should be replaced (defaults to all post_types associated with taxonomy)
-	 * @var array
 	 * @since 0.1.0
+	 * @var array
 	 */
-	public $post_types = array();
+	protected $post_types = array();
 
 	/**
 	 * Taxonomy slug
-	 * @var string
 	 * @since 0.1.0
+	 * @var string
 	 */
-	public $slug = '';
+	protected $slug = '';
 
 	/**
 	 * Taxonomy object
-	 * @var object
 	 * @since 0.1.0
+	 * @var object
 	 */
-	public $taxonomy = false;
+	protected $taxonomy = false;
 
 	/**
 	 * Taxonomy_Single_Term_Walker object
-	 * @var object
 	 * @since 0.1.0
+	 * @var object
 	 */
-	public $walker = false;
+	protected $walker = false;
 
 	/**
 	 * New metabox title. Defaults to Taxonomy name
-	 * @var string
 	 * @since 0.1.0
+	 * @var string
 	 */
-	public $metabox_title = '';
+	protected $metabox_title = '';
 
 	/**
 	 * Metabox priority. (vertical placement)
 	 * 'high', 'core', 'default' or 'low'
-	 * @var string
 	 * @since 0.1.0
+	 * @var string
 	 */
-	public $priority = 'high';
+	protected $priority = 'high';
 
 	/**
 	 * Metabox position. (column placement)
 	 * 'normal', 'advanced', or 'side'
-	 * @var string
 	 * @since 0.1.0
+	 * @var string
 	 */
-	public $context = 'side';
+	protected $context = 'side';
 
 	/**
 	 * Set to true to hide "None" option & force a term selection
-	 * @var boolean
 	 * @since 0.1.1
+	 * @var boolean
 	 */
-	public $force_selection = false;
+	protected $force_selection = false;
 
 	/**
 	 * Whether hierarchical taxonomy inputs should be indented to represent hierarchy
-	 * @var boolean
 	 * @since 0.1.2
+	 * @var boolean
 	 */
-	public $indented = true;
+	protected $indented = true;
 
 	/**
 	 * Checks if there is a bulk-edit term to set
 	 * @var boolean|term object
 	 */
-	public $to_set = false;
+	protected $to_set = false;
 
 	/**
 	 * Array of post ids whose terms have been reset from bulk-edit. (prevents recursion)
 	 * @var array
 	 */
-	public $single_term_set = array();
+	protected $single_term_set = array();
 
 	/**
 	 * What input element to use in the taxonomy meta box (radio or select)
 	 * @var array
 	 */
-	public $input_el = 'radio';
+	protected $input_el = 'radio';
 
 	/**
 	 * Whether adding new terms via the metabox is permitted
+	 * @since 0.2.0
 	 * @var boolean
 	 */
-	public $allow_new_terms = false;
+	protected $allow_new_terms = false;
 
 	/**
 	 * Initiates our metabox action
+	 * @since 0.1.0
 	 * @param string $tax_slug      Taxonomy slug
 	 * @param array  $post_types    post-types to display custom metabox
-	 * @since 0.1.0
 	 */
 	public function __construct( $tax_slug, $post_types = array(), $type = 'radio' ) {
 
@@ -129,31 +130,7 @@ class Taxonomy_Single_Term {
 
 		// Handle bulk-editing
 		if ( isset( $_REQUEST['bulk_edit'] ) && 'Update' == $_REQUEST['bulk_edit'] ) {
-
-			// Get wp tax name designation
-			$name = $this->slug;
-
-			if ( 'category' == $name ) {
-				$name = 'post_category';
-			}
-
-			if ( 'tag' == $name ) {
-				$name = 'post_tag';
-			}
-
-			// If this tax name exists in the query arg
-			if ( isset( $_REQUEST[ $name ] ) && is_array( $_REQUEST[ $name ] ) ) {
-				$this->to_set = end( $_REQUEST[ $name ] );
-			} elseif ( isset( $_REQUEST['tax_input'][ $name ] ) && is_array( $_REQUEST['tax_input'][ $name ] ) ) {
-				$this->to_set = end( $_REQUEST['tax_input'][ $name ] );
-			}
-
-			// Then get it's term object
-			if ( $this->to_set ) {
-				$this->to_set = get_term( $this->to_set, $this->slug );
-				// And hook in our re-save action
-				add_action( 'set_object_terms', array( $this, 'maybe_resave_terms' ), 10, 5 );
-			}
+			$this->bulk_edit_handler();
 		}
 	}
 
@@ -176,25 +153,6 @@ class Taxonomy_Single_Term {
 			// add our custom radio box
 			add_meta_box( $this->slug .'_input_el', $this->metabox_title(), array( $this, 'input_el' ), $cpt, $this->context, $this->priority );
 		}
-	}
-
-	/**
-	 * Set the object properties.
-	 *
-	 * @param string $property  Property in object.  Must be set in object.
-	 * @param mixed  $value     Value of property.
-	 *
-	 * @since 0.2.1
-	 *
-	 * @return Taxonomy_Single_Term  Returns Taxonomy_Single_Term object, allows for chaining.
-	 */
-	public function set( $property, $value ) {
-
-		if ( property_exists( $this, $value ) ) {
-			$this->$property = $value;
-		}
-
-		return $this;
 	}
 
 	/**
@@ -476,6 +434,37 @@ class Taxonomy_Single_Term {
 	}
 
 	/**
+	 * Handles checking if object terms need to be set when bulk-editing posts
+	 * @since  0.2.1
+	 */
+	public function bulk_edit_handler() {
+		// Get wp tax name designation
+		$name = $this->slug;
+
+		if ( 'category' == $name ) {
+			$name = 'post_category';
+		}
+
+		if ( 'tag' == $name ) {
+			$name = 'post_tag';
+		}
+
+		// If this tax name exists in the query arg
+		if ( isset( $_REQUEST[ $name ] ) && is_array( $_REQUEST[ $name ] ) ) {
+			$this->to_set = end( $_REQUEST[ $name ] );
+		} elseif ( isset( $_REQUEST['tax_input'][ $name ] ) && is_array( $_REQUEST['tax_input'][ $name ] ) ) {
+			$this->to_set = end( $_REQUEST['tax_input'][ $name ] );
+		}
+
+		// Then get it's term object
+		if ( $this->to_set ) {
+			$this->to_set = get_term( $this->to_set, $this->slug );
+			// And hook in our re-save action
+			add_action( 'set_object_terms', array( $this, 'maybe_resave_terms' ), 10, 5 );
+		}
+	}
+
+	/**
 	 * Handles resaving terms to post when bulk-editing so that only one term will be applied
 	 * @since  0.1.4
 	 * @param  int    $object_id  Object ID.
@@ -504,8 +493,8 @@ class Taxonomy_Single_Term {
 
 	/**
 	 * Gets the taxonomy object from the slug
-	 * @return object Taxonomy object
 	 * @since 0.1.0
+	 * @return object Taxonomy object
 	 */
 	public function taxonomy() {
 		$this->taxonomy = $this->taxonomy ? $this->taxonomy : get_taxonomy( $this->slug );
@@ -514,8 +503,8 @@ class Taxonomy_Single_Term {
 
 	/**
 	 * Gets the taxonomy's associated post_types
-	 * @return array Taxonomy's associated post_types
 	 * @since 0.1.0
+	 * @return array Taxonomy's associated post_types
 	 */
 	public function post_types() {
 		$this->post_types = !empty( $this->post_types ) ? $this->post_types : $this->taxonomy()->object_type;
@@ -524,8 +513,8 @@ class Taxonomy_Single_Term {
 
 	/**
 	 * Gets the metabox title from the taxonomy object's labels (or uses the passed in title)
-	 * @return string Metabox title
 	 * @since 0.1.0
+	 * @return string Metabox title
 	 */
 	public function metabox_title() {
 		$this->metabox_title = !empty( $this->metabox_title ) ? $this->metabox_title : $this->taxonomy()->labels->name;
@@ -534,8 +523,8 @@ class Taxonomy_Single_Term {
 
 	/**
 	 * Gets the Taxonomy_Single_Term_Walker object for use in term_fields_list and ajax_add_term
-	 * @return object Taxonomy_Single_Term_Walker object
 	 * @since 0.2.0
+	 * @return object Taxonomy_Single_Term_Walker object
 	 */
 	public function walker() {
 		if ( $this->walker ) {
@@ -545,6 +534,43 @@ class Taxonomy_Single_Term {
 		$this->walker = new Taxonomy_Single_Term_Walker( $this->taxonomy()->hierarchical, $this->input_el );
 
 		return $this->walker;
+	}
+
+	/**
+	 * Set the object properties.
+	 *
+	 * @since 0.2.1
+	 *
+	 * @param string $property  Property in object.  Must be set in object.
+	 * @param mixed  $value     Value of property.
+	 *
+	 * @return Taxonomy_Single_Term  Returns Taxonomy_Single_Term object, allows for chaining.
+	 */
+	public function set( $property, $value ) {
+
+		if ( property_exists( $this, $value ) ) {
+			$this->$property = $value;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Magic getter for our object.
+	 *
+	 * @since  0.2.1
+	 *
+	 * @param  string    Property in object to retrieve.
+	 * @throws Exception Throws an exception if the field is invalid.
+	 *
+	 * @return mixed     Property requested.
+	 */
+	public function __get( $property ) {
+		if ( property_exists( $this, $value ) ) {
+			return $this->{$property};
+		} else {
+			throw new Exception( 'Invalid '. __CLASS__ .' property: ' . $field );
+		}
 	}
 
 }
