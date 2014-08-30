@@ -14,9 +14,9 @@ class Taxonomy_Single_Term_Walker extends Walker {
 	public $tree_type = 'category';
 	public $db_fields = array( 'parent' => 'parent', 'id' => 'term_id' ); //TODO: decouple this
 
-	public function __construct( $hierarchical, $input_el ) {
+	public function __construct( $hierarchical, $input_element ) {
 		$this->hierarchical = $hierarchical;
-		$this->input_el = $input_el;
+		$this->input_element = $input_element;
 	}
 
 	/**
@@ -31,7 +31,7 @@ class Taxonomy_Single_Term_Walker extends Walker {
 	 * @param array  $args   An array of arguments. @see wp_terms_checklist()
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( 'radio' == $this->input_el ) {
+		if ( 'radio' == $this->input_element ) {
 			$indent = str_repeat("\t", $depth);
 			$output .= "$indent<ul class='children'>\n";
 		}
@@ -49,7 +49,7 @@ class Taxonomy_Single_Term_Walker extends Walker {
 	 * @param array  $args   An array of arguments. @see wp_terms_checklist()
 	 */
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( 'radio' == $this->input_el ) {
+		if ( 'radio' == $this->input_element ) {
 			$indent = str_repeat("\t", $depth);
 			$output .= "$indent</ul>\n";
 		}
@@ -90,7 +90,7 @@ class Taxonomy_Single_Term_Walker extends Walker {
 			'label'         => esc_html( apply_filters('the_category', $term->name ) )
 		);
 
-		$output .= 'radio' == $this->input_el
+		$output .= 'radio' == $this->input_element
 			? $this->start_el_radio( $args )
 			: $this->start_el_select( $args );
 	}
@@ -150,7 +150,7 @@ class Taxonomy_Single_Term_Walker extends Walker {
 	 * @param array  $args     An array of arguments. @see wp_terms_checklist()
 	 */
 	public function end_el( &$output, $term, $depth = 0, $args = array() ) {
-		if ( 'radio' == $this->input_el ) {
+		if ( 'radio' == $this->input_element ) {
 			$output .= "</li>\n";
 		} else {
 			$output .= "</option>\n";

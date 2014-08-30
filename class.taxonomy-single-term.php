@@ -103,7 +103,7 @@ class Taxonomy_Single_Term {
 	 * What input element to use in the taxonomy meta box (radio or select)
 	 * @var array
 	 */
-	protected $input_el = 'radio';
+	protected $input_element = 'radio';
 
 	/**
 	 * Whether adding new terms via the metabox is permitted
@@ -122,9 +122,9 @@ class Taxonomy_Single_Term {
 
 		$this->slug = $tax_slug;
 		$this->post_types = is_array( $post_types ) ? $post_types : array( $post_types );
-		$this->input_el = in_array( (string) $type, array( 'radio', 'select' ) ) ? $type : $this->input_el;
+		$this->input_element = in_array( (string) $type, array( 'radio', 'select' ) ) ? $type : $this->input_element;
 
-		add_action( 'add_meta_boxes', array( $this, 'add_input_el' ) );
+		add_action( 'add_meta_boxes', array( $this, 'add_input_element' ) );
 		add_action( 'admin_footer', array( $this, 'js_checkbox_transform' ) );
 		add_action( 'wp_ajax_taxonomy_single_term_add', array( $this, 'ajax_add_term' ) );
 
@@ -138,7 +138,7 @@ class Taxonomy_Single_Term {
 	 * Removes and replaces the built-in taxonomy metabox with our own.
 	 * @since 0.1.0
 	 */
-	public function add_input_el() {
+	public function add_input_element() {
 
 		// test the taxonomy slug construtor is an actual taxonomy
 		if ( ! $this->taxonomy() ) {
@@ -151,7 +151,7 @@ class Taxonomy_Single_Term {
 			// remove default tag type metabox
 			remove_meta_box( 'tagsdiv-'.$this->slug, $cpt, 'side' );
 			// add our custom radio box
-			add_meta_box( $this->slug .'_input_el', $this->metabox_title(), array( $this, 'input_el' ), $cpt, $this->context, $this->priority );
+			add_meta_box( $this->slug .'_input_element', $this->metabox_title(), array( $this, 'input_element' ), $cpt, $this->context, $this->priority );
 		}
 	}
 
@@ -160,7 +160,7 @@ class Taxonomy_Single_Term {
 	 * @since 0.1.0
 	 * @todo Abstract inline javascript to it's own file and localize it
 	 */
-	public function input_el() {
+	public function input_element() {
 
 		// uses same noncename as default box so no save_post hook needed
 		wp_nonce_field( 'taxonomy_'. $this->slug, 'taxonomy_noncename' );
@@ -172,8 +172,8 @@ class Taxonomy_Single_Term {
 		$this->namefield    = 'category' == $this->slug ? 'post_category' : 'tax_input[' . $this->slug . ']';
 		$this->namefield    = $this->taxonomy()->hierarchical ? $this->namefield . '[]' : $this->namefield;
 
-		$el_open_cb  = $this->input_el . '_open';
-		$el_close_cb = $this->input_el . '_close';
+		$el_open_cb  = $this->input_element . '_open';
+		$el_close_cb = $this->input_element . '_close';
 
 		?>
 		<div id="taxonomy-<?php echo $this->slug; ?>" class="<?php echo $class; ?>">
@@ -267,7 +267,7 @@ class Taxonomy_Single_Term {
 	public function terms_adder_button() {
 		?>
 		<p style="margin-bottom:0;float:right;width:50%;text-align:right;">
-			<a class="button-secondary" id="taxonomy-<?php echo $this->slug; ?>-new" href="#"<?php if ( 'radio' == $this->input_el ) : ?> style="display:inline-block;margin-top:0.4em;"<?php endif; ?>><?php _e( 'Add New' ); ?></a>
+			<a class="button-secondary" id="taxonomy-<?php echo $this->slug; ?>-new" href="#"<?php if ( 'radio' == $this->input_element ) : ?> style="display:inline-block;margin-top:0.4em;"<?php endif; ?>><?php _e( 'Add New' ); ?></a>
 		</p>
 		<script type="text/javascript">
 			jQuery(document).ready(function($){
@@ -287,7 +287,7 @@ class Taxonomy_Single_Term {
 						$.post( ajaxurl, data, function(response) {
 							window.console.log( 'response', response );
 							if( response.success ){
-								<?php if ( 'radio' == $this->input_el ) : ?>
+								<?php if ( 'radio' == $this->input_element ) : ?>
 									$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
 								<?php else : ?>
 									$('#taxonomy-<?php echo $this->slug; ?> option').prop( 'selected', false );
@@ -356,7 +356,7 @@ class Taxonomy_Single_Term {
 		);
 
 		$output = '';
-		$output .= 'radio' == $this->input_el
+		$output .= 'radio' == $this->input_element
 			? $this->walker()->start_el_radio( $args )
 			: $this->walker()->start_el_select( $args );
 
@@ -531,7 +531,7 @@ class Taxonomy_Single_Term {
 			return $this->walker;
 		}
 		require_once( 'walker.taxonomy-single-term.php' );
-		$this->walker = new Taxonomy_Single_Term_Walker( $this->taxonomy()->hierarchical, $this->input_el );
+		$this->walker = new Taxonomy_Single_Term_Walker( $this->taxonomy()->hierarchical, $this->input_element );
 
 		return $this->walker;
 	}
@@ -548,7 +548,7 @@ class Taxonomy_Single_Term {
 	 */
 	public function set( $property, $value ) {
 
-		if ( property_exists( $this, $value ) ) {
+		if ( property_exists( $this, $property ) ) {
 			$this->$property = $value;
 		}
 
