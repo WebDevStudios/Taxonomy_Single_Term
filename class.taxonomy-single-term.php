@@ -18,7 +18,7 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  * $custom_tax_mb->allow_new_terms = true;
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
- * @version  0.2
+ * @version  0.2.0
  */
 class Taxonomy_Single_Term {
 
@@ -42,6 +42,13 @@ class Taxonomy_Single_Term {
 	 * @since 0.1.0
 	 */
 	public $taxonomy = false;
+
+	/**
+	 * Taxonomy_Single_Term_Walker object
+	 * @var object
+	 * @since 0.1.0
+	 */
+	public $walker = false;
 
 	/**
 	 * New metabox title. Defaults to Taxonomy name
@@ -118,7 +125,7 @@ class Taxonomy_Single_Term {
 
 		add_action( 'add_meta_boxes', array( $this, 'add_input_el' ) );
 		add_action( 'admin_footer', array( $this, 'js_checkbox_transform' ) );
-		add_action( 'wp_ajax_taxonomy_single_term_add', array( $this, 'add_term' ) );
+		add_action( 'wp_ajax_taxonomy_single_term_add', array( $this, 'ajax_add_term' ) );
 
 		// Handle bulk-editing
 		if ( isset( $_REQUEST['bulk_edit'] ) && 'Update' == $_REQUEST['bulk_edit'] ) {
@@ -175,121 +182,206 @@ class Taxonomy_Single_Term {
 		// uses same noncename as default box so no save_post hook needed
 		wp_nonce_field( 'taxonomy_'. $this->slug, 'taxonomy_noncename' );
 
-		require_once( 'walker.taxonomy-single-term.php' );
+		$class       = $this->indented ? 'taxonomydiv' : 'not-indented';
+		$class      .= 'category' !== $this->slug ? ' '. $this->slug .'div' : '';
+		$class      .= ' tabs-panel';
 
-		$class = $this->indented ? 'taxonomydiv' : 'not-indented';
-		$class .= 'category' !== $this->slug ? ' '. $this->slug .'div' : '';
-		$class .= ' tabs-panel';
+		$this->namefield    = 'category' == $this->slug ? 'post_category' : 'tax_input[' . $this->slug . ']';
+		$this->namefield    = $this->taxonomy()->hierarchical ? $this->namefield . '[]' : $this->namefield;
 
-		$tax_name = 'category' == $this->slug ? 'post_category' : 'tax_input[' . $this->slug . ']';
-		$tax_name = $this->taxonomy()->hierarchical ? $tax_name . '[]' : $tax_name;
+		$el_open_cb  = $this->input_el . '_open';
+		$el_close_cb = $this->input_el . '_close';
+
 		?>
-		<div id="taxonomy-<?php echo $this->slug; ?>" class="<?php echo $class; ?>"<?php if ( 'select' == $this->input_el ) : ?> style="padding-top: 5px;"<?php endif; ?>>
-			<?php if ( 'radio' == $this->input_el ) : ?>
-				<ul id="<?php echo $this->slug; ?>checklist" data-wp-lists="list:<?php echo $this->slug?>" class="categorychecklist form-no-clear">
-					<?php if ( ! $this->force_selection ) : ?>
-						<li style="display:none;">
-							<input id="taxonomy-<?php echo $this->slug; ?>-clear" type="radio" name="<?php echo $tax_name; ?>" value="0" />
-						</li>
-					<?php endif; ?>
-			<?php else : ?>
-				<select style="display:block;width:100%;" name="<?php echo $tax_name; ?>" id="<?php echo $this->slug; ?>checklist" class="form-no-clear">
-					<?php if ( ! $this->force_selection ) : ?>
-						<option value="0"><?php echo esc_html( apply_filters( 'taxonomy_single_term_select_none', __( 'None' ) ) ); ?></option>
-					<?php endif; ?>
-			<?php endif; ?>
-				<?php wp_terms_checklist( get_the_ID(), array(
-					'taxonomy'      => $this->slug,
-					'checked_ontop' => false,
-					'walker'        => new Taxonomy_Single_Term_Walker( $this->taxonomy()->hierarchical, $this->input_el ),
-				) ) ?>
-			<?php if ( 'radio' == $this->input_el ) : ?>
-				</ul>
-				<p style="margin-bottom:0;float:left;width:50%;">
-					<a class="button" id="taxonomy-<?php echo $this->slug; ?>-trigger-clear" href="#"><?php _e( 'Clear' ); ?></a>
-				</p>
-				<script type="text/javascript">
-					jQuery(document).ready(function($){
-						$('#taxonomy-<?php echo $this->slug; ?>-trigger-clear').click(function(){
-							$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
-							$('#taxonomy-<?php echo $this->slug; ?>-clear').prop( 'checked', true );
-							return false;
-						});
-					});
-				</script>
-			<?php else : ?>
-				</select>
-			<?php endif; ?>
-			<?php if ( $this->allow_new_terms ) : ?>
-				<p style="margin-bottom:0;float:right;width:50%;text-align:right;">
-					<a id="taxonomy-<?php echo $this->slug; ?>-new" href="#"<?php if ( 'radio' == $this->input_el ) : ?> style="display:inline-block;margin-top:0.4em;"<?php endif; ?>><?php _e( 'Add New' ); ?></a>
-				</p>
-				<script type="text/javascript">
-					jQuery(document).ready(function($){
-						$('#taxonomy-<?php echo $this->slug; ?>-new').click(function(){
-							var term = prompt( "Add New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>", "New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>" );
-							if(term != null) {
-								var data = {
-									'action': 'taxonomy_single_term_add',
-									'term': term,
-									'taxonomy': '<?php echo $this->slug; ?>',
-									'nonce': '<?php echo wp_create_nonce( 'taxonomy_'. $this->slug, '_add_term' ); ?>'
-								};
-								$.post(ajaxurl, data, function(response) {
-									console.log(response);
-									if('0'!==response){
-										<?php if ( 'radio' == $this->input_el ) : ?>
-											$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
-											$('#<?php echo $this->slug; ?>checklist').append(response);
-										<?php else : ?>
-											$('#taxonomy-<?php echo $this->slug; ?> option').prop( 'selected', false );
-											$('#<?php echo $this->slug; ?>checklist').append(response);
-										<?php endif; ?>
-									}else{
-										alert('<?php echo __( 'There was a problem adding a new ' ) . esc_attr( $this->taxonomy()->labels->singular_name ); ?>');
-									}
-								});
-							}
-						});
-					});
-				</script>
-			<?php endif; ?>
+		<div id="taxonomy-<?php echo $this->slug; ?>" class="<?php echo $class; ?>">
+			<?php $this->{$el_open_cb}() ?>
+			<?php $this->term_fields_list(); ?>
+			<?php $this->{$el_close_cb}() ?>
+			<?php if ( $this->allow_new_terms ) {
+				$this->terms_adder_button();
+			} ?>
 			<div style="clear:both;"></div>
 		</div>
 		<?php
 	}
 
 	/**
-	 * AJAX callback to add terms inline
-	 * @since 0.2
+	 * Select wrapper open
+	 * @since  0.2.0
 	 */
-	function add_term() {
-		$nonce      = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
-		$term       = isset( $_POST['term'] ) ? sanitize_text_field( $_POST['term'] ) : false;
-		$taxonomy   = isset( $_POST['taxonomy'] ) ? sanitize_text_field( $_POST['taxonomy'] ) : false;
-		$return     = 0;
+	public function select_open() {
+		?>
+		<select style="display:block;width:100%;margin-top:12px;" name="<?php echo $this->namefield; ?>" id="<?php echo $this->slug; ?>checklist" class="form-no-clear">
+			<?php if ( ! $this->force_selection ) : ?>
+				<option value="0"><?php echo esc_html( apply_filters( 'taxonomy_single_term_select_none', __( 'None' ) ) ); ?></option>
+			<?php endif;
+	}
 
-		if ( $this->allow_new_terms && wp_verify_nonce( $nonce, 'taxonomy_'. $this->slug, '_add_term' ) && taxonomy_exists( $taxonomy ) && empty( term_exists( $term, $taxonomy ) ) ) {
-			$term_id = wp_insert_term( $term, $taxonomy );
-			if ( ! is_wp_error( $term_id ) ) {
-				$return = true;
-				$term_obj = get_term_by( 'id', $term_id['term_id'], $taxonomy );
-				// we're going to dump out the HTML to use
-				if ( 'radio' == $this->input_el ) : ?>
-					<li id="designer-<?php echo absint( $term_obj->term_id ); ?>">
-						<label class="selectit"><input value="<?php echo esc_attr( $term_obj->slug ); ?>" type="radio" name="tax_input[<?php echo esc_attr( $taxonomy ); ?>]" id="in-designer-<?php echo esc_attr( $term_obj->term_id ); ?>" checked="checked"><?php echo esc_html( $term_obj->name ); ?></label>
-					</li>
-				<?php else : ?>
-					<option selected="selected" id="designer-<?php echo absint( $term_obj->term_id ); ?>" value="<?php echo esc_attr( $term_obj->slug ); ?>"><?php echo esc_html( $term_obj->name ); ?></option>
-				<?php endif;
-			}
-		}
-		if ( empty ( $return ) ) {
-			echo $return;
+	/**
+	 * Radio wrapper open
+	 * @since  0.2.0
+	 */
+	public function radio_open() {
+		?>
+		<ul id="<?php echo $this->slug; ?>checklist" data-wp-lists="list:<?php echo $this->slug?>" class="categorychecklist form-no-clear">
+			<?php if ( ! $this->force_selection ) : ?>
+				<li style="display:none;">
+					<input id="taxonomy-<?php echo $this->slug; ?>-clear" type="radio" name="<?php echo $this->namefield; ?>" value="0" />
+				</li>
+			<?php endif;
+	}
+
+	/**
+	 * Select wrapper close
+	 * @since  0.2.0
+	 */
+	public function select_close() {
+		?>
+		</select>
+		<?php
+	}
+
+	/**
+	 * Radio wrapper close
+	 * @since  0.2.0
+	 */
+	public function radio_close() {
+		?>
+		</ul>
+		<p style="margin-bottom:0;float:left;width:50%;">
+			<a class="button" id="taxonomy-<?php echo $this->slug; ?>-trigger-clear" href="#"><?php _e( 'Clear' ); ?></a>
+		</p>
+		<script type="text/javascript">
+			jQuery(document).ready(function($){
+				$('#taxonomy-<?php echo $this->slug; ?>-trigger-clear').click(function(){
+					$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
+					$('#taxonomy-<?php echo $this->slug; ?>-clear').prop( 'checked', true );
+					return false;
+				});
+			});
+		</script>
+		<?php
+	}
+
+	/**
+	 * wp_terms_checklist wrapper which outputs the terms list
+	 * @since  0.2.0
+	 */
+	public function term_fields_list() {
+		wp_terms_checklist( get_the_ID(), array(
+			'taxonomy'      => $this->slug,
+			'selected_cats' => false,
+			'popular_cats'  => false,
+			'checked_ontop' => false,
+			'walker'        => $this->walker(),
+		) );
+	}
+
+	/**
+	 * Adds button (and associated JS) for adding new terms
+	 * @since 0.2.0
+	 */
+	public function terms_adder_button() {
+		?>
+		<p style="margin-bottom:0;float:right;width:50%;text-align:right;">
+			<a class="button-secondary" id="taxonomy-<?php echo $this->slug; ?>-new" href="#"<?php if ( 'radio' == $this->input_el ) : ?> style="display:inline-block;margin-top:0.4em;"<?php endif; ?>><?php _e( 'Add New' ); ?></a>
+		</p>
+		<script type="text/javascript">
+			jQuery(document).ready(function($){
+				$('#taxonomy-<?php echo $this->slug; ?>-new').click(function(){
+					var termName = prompt( "Add New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>", "New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>" );
+
+					if( ! termName ) {
+						return;
+					}
+					if(termName != null) {
+						var data = {
+							'action'    : 'taxonomy_single_term_add',
+							'term_name' : termName,
+							'taxonomy'  : '<?php echo $this->slug; ?>',
+							'nonce'     : '<?php echo wp_create_nonce( 'taxonomy_'. $this->slug, '_add_term' ); ?>'
+						};
+						$.post( ajaxurl, data, function(response) {
+							window.console.log( 'response', response );
+							if( response.success ){
+								<?php if ( 'radio' == $this->input_el ) : ?>
+									$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
+								<?php else : ?>
+									$('#taxonomy-<?php echo $this->slug; ?> option').prop( 'selected', false );
+								<?php endif; ?>
+								$('#<?php echo $this->slug; ?>checklist').append( response.data );
+							} else {
+								window.alert( '<?php printf( __( 'There was a problem adding a new %s' ), esc_attr( $this->taxonomy()->labels->singular_name ) ); ?>' );
+							}
+						});
+					}
+				});
+			});
+		</script>
+		<?php
+	}
+
+	/**
+	 * AJAX callback to add terms inline
+	 * @since 0.2.0
+	 */
+	function ajax_add_term() {
+		$nonce     = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		$term_name = isset( $_POST['term_name'] ) ? sanitize_text_field( $_POST['term_name'] ) : false;
+		$taxonomy  = isset( $_POST['taxonomy'] ) ? sanitize_text_field( $_POST['taxonomy'] ) : false;
+
+		$validated = (
+			$this->allow_new_terms
+			&& wp_verify_nonce( $nonce, 'taxonomy_'. $this->slug, '_add_term' )
+			&& taxonomy_exists( $taxonomy )
+			&& ! term_exists( $term_name, $taxonomy )
+		);
+
+		if ( ! $validated ) {
+			wp_send_json_error();
 		}
 
-		// standard to die after AJAX callbacks
-		die();
+		$result = wp_insert_term( $term_name, $taxonomy );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+
+		$term = get_term_by( 'id', $result['term_id'], $taxonomy );
+
+		if ( ! isset( $term->term_id ) ) {
+			wp_send_json_error();
+		}
+
+
+		$field_name = $taxonomy == 'category'
+			? 'post_category'
+			: 'tax_input['. $taxonomy .']';
+
+		$field_name = $this->taxonomy()->hierarchical
+			? $field_name .'[]'
+			: $field_name;
+
+		$args = array(
+			'id'            => $taxonomy .'-'. $term->term_id,
+			'name'          => $field_name,
+			'value'         => $this->taxonomy()->hierarchical ? $term->term_id : $term->slug,
+			'checked'       => ' checked="checked"',
+			'selected'      => ' selected="selected"',
+			'disabled'      => '',
+			'label'         => esc_html( apply_filters('the_category', $term->name ) ),
+		);
+
+		$output = '';
+		$output .= 'radio' == $this->input_el
+			? $this->walker()->start_el_radio( $args )
+			: $this->walker()->start_el_select( $args );
+
+		// $output is handled by reference
+		$this->walker()->end_el( $output, $term );
+
+		wp_send_json_success( $output );
+
 	}
 
 	/**
@@ -415,6 +507,20 @@ class Taxonomy_Single_Term {
 		return $this->metabox_title;
 	}
 
+	/**
+	 * Gets the Taxonomy_Single_Term_Walker object for use in term_fields_list and ajax_add_term
+	 * @return object Taxonomy_Single_Term_Walker object
+	 * @since 0.2.0
+	 */
+	public function walker() {
+		if ( $this->walker ) {
+			return $this->walker;
+		}
+		require_once( 'walker.taxonomy-single-term.php' );
+		$this->walker = new Taxonomy_Single_Term_Walker( $this->taxonomy()->hierarchical, $this->input_el );
+
+		return $this->walker;
+	}
 
 }
 
