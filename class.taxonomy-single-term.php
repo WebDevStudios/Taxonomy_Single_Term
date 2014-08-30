@@ -118,7 +118,6 @@ class Taxonomy_Single_Term {
 
 		add_action( 'add_meta_boxes', array( $this, 'add_input_el' ) );
 		add_action( 'admin_footer', array( $this, 'js_checkbox_transform' ) );
-
 		add_action( 'wp_ajax_taxonomy_single_term_add', array( $this, 'add_term' ) );
 
 		// Handle bulk-editing
@@ -240,11 +239,11 @@ class Taxonomy_Single_Term {
 									console.log(response);
 									if('0'!==response){
 										<?php if ( 'radio' == $this->input_el ) : ?>
-										$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
-										$('#<?php echo $this->slug; ?>checklist').append(response);
+											$('#taxonomy-<?php echo $this->slug; ?> input:checked').prop( 'checked', false );
+											$('#<?php echo $this->slug; ?>checklist').append(response);
 										<?php else : ?>
-										$('#taxonomy-<?php echo $this->slug; ?> option').prop( 'selected', false );
-										$('#<?php echo $this->slug; ?>checklist').append(response);
+											$('#taxonomy-<?php echo $this->slug; ?> option').prop( 'selected', false );
+											$('#<?php echo $this->slug; ?>checklist').append(response);
 										<?php endif; ?>
 									}else{
 										alert('<?php echo __( 'There was a problem adding a new ' ) . esc_attr( $this->taxonomy()->labels->singular_name ); ?>');
