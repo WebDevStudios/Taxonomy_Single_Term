@@ -132,10 +132,14 @@ class Taxonomy_Single_Term {
 
 			// Get wp tax name designation
 			$name = $this->slug;
-			if ( 'category' == $name )
+
+			if ( 'category' == $name ) {
 				$name = 'post_category';
-			if ( 'tag' == $name )
+			}
+
+			if ( 'tag' == $name ) {
 				$name = 'post_tag';
+			}
 
 			// If this tax name exists in the query arg
 			if ( isset( $_REQUEST[ $name ] ) && is_array( $_REQUEST[ $name ] ) ) {
@@ -158,9 +162,11 @@ class Taxonomy_Single_Term {
 	 * @since 0.1.0
 	 */
 	public function add_input_el() {
+
 		// test the taxonomy slug construtor is an actual taxonomy
-		if ( ! $this->taxonomy() )
+		if ( ! $this->taxonomy() ) {
 			return;
+		}
 
 		foreach ( $this->post_types() as $key => $cpt ) {
 			// remove default category type metabox
