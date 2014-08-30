@@ -3,7 +3,7 @@ Taxonomy_Single_Term
 
 Version: 0.2.0
 
-Taxonomies in WordPress are super powerful. The purpose of taxonomies is to create relationships among post types. Unfortunately the UI doesn't effectively enforce limiting to a single term. 
+Taxonomies in WordPress are super powerful. The purpose of taxonomies is to create relationships among post types. Unfortunately the UI doesn't effectively enforce limiting to a single term.
 
 This library helps you remove and replace the built-in taxonomy metabox with a radio or select metabox.
 
@@ -13,7 +13,7 @@ Usage
 ------------
 
 1. Include the `class.taxonomy-single-term.php` file from within your plugin or theme
-2. Initialize the class (update the taxonomy slug with your own):  
+2. Initialize the class (update the taxonomy slug with your own):
 	`$custom_tax_mb = new Taxonomy_Single_Term( 'custom-tax-slug' );`
 
 #### Optional
@@ -22,22 +22,22 @@ Usage
 2. Update optional class properties like:
 ```php
 // Priority of the metabox placement.
-$custom_tax_mb->priority = 'low';
+$custom_tax_mb->set( 'priority', 'low' );
 
 // 'normal' to move it under the post content.
-$custom_tax_mb->context = 'normal';
+$custom_tax_mb->set( 'context', 'normal' );
 
 // Custom title for your metabox
-$custom_tax_mb->metabox_title = __( 'Custom Metabox Title', 'yourtheme' );
+$custom_tax_mb->set( 'context', __( 'Custom Metabox Title', 'yourtheme' ) );
 
 // Makes a selection required.
-$custom_tax_mb->force_selection = true;
+$custom_tax_mb->set( 'force_selection', true );
 
 // Will keep radio elements from indenting for child-terms.
-$custom_tax_mb->indented = false; 
+$custom_tax_mb->set( 'indented', false );
 
 // Allows adding of new terms from the metabox
-$custom_tax_mb->allow_new_terms = true; 
+$custom_tax_mb->set( 'allow_new_terms', true );
 ```
 
 #### Change Log

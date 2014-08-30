@@ -10,12 +10,12 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  *
  * Update optional properties:
  *
- * $custom_tax_mb->priority = 'low';
- * $custom_tax_mb->context = 'normal';
- * $custom_tax_mb->metabox_title = __( 'Custom Metabox Title', 'yourtheme' );
- * $custom_tax_mb->force_selection = true;
- * $custom_tax_mb->indented = false;
- * $custom_tax_mb->allow_new_terms = true;
+ * $custom_tax_mb->set( 'priority', 'low' );
+ * $custom_tax_mb->set( 'context', 'normal' );
+ * $custom_tax_mb->set( 'metabox_title', __( 'Custom Metabox Title', 'yourtheme' ) );
+ * $custom_tax_mb->set( 'force_selection', true );
+ * $custom_tax_mb->set( 'indented', false );
+ * $custom_tax_mb->set( 'allow_new_terms', true );
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
  * @version  0.2.0
@@ -170,6 +170,25 @@ class Taxonomy_Single_Term {
 			// add our custom radio box
 			add_meta_box( $this->slug .'_input_el', $this->metabox_title(), array( $this, 'input_el' ), $cpt, $this->context, $this->priority );
 		}
+	}
+
+	/**
+	 * Set the object properties.
+	 *
+	 * @param string $property  Property in object.  Must be set in object.
+	 * @param mixed  $value     Value of property.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @return Taxonomy_Single_Term  Returns Taxonomy_Single_Term object, allows for chaining.
+	 */
+	public function set( $property, $value ) {
+
+		if ( property_exists( $this, $value ) ) {
+			$this->$property = $value;
+		}
+
+		return $this;
 	}
 
 	/**
