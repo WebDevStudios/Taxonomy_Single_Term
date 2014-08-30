@@ -178,7 +178,7 @@ class Taxonomy_Single_Term {
 	 * @param string $property  Property in object.  Must be set in object.
 	 * @param mixed  $value     Value of property.
 	 *
-	 * @since 0.2.0
+	 * @since 0.2.1
 	 *
 	 * @return Taxonomy_Single_Term  Returns Taxonomy_Single_Term object, allows for chaining.
 	 */
