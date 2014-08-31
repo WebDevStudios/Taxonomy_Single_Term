@@ -148,11 +148,11 @@ class Taxonomy_Single_Term {
 
 		foreach ( $this->post_types() as $key => $cpt ) {
 			// remove default category type metabox
-			remove_meta_box( $this->slug .'div', $cpt, 'side' );
+			remove_meta_box( $this->slug . 'div', $cpt, 'side' );
 			// remove default tag type metabox
-			remove_meta_box( 'tagsdiv-'.$this->slug, $cpt, 'side' );
+			remove_meta_box( 'tagsdiv-' . $this->slug, $cpt, 'side' );
 			// add our custom radio box
-			add_meta_box( $this->slug .'_input_element', $this->metabox_title(), array( $this, 'input_element' ), $cpt, $this->context, $this->priority );
+			add_meta_box( $this->slug . '_input_element', $this->metabox_title(), array( $this, 'input_element' ), $cpt, $this->context, $this->priority );
 		}
 	}
 
@@ -167,7 +167,7 @@ class Taxonomy_Single_Term {
 		wp_nonce_field( 'taxonomy_'. $this->slug, 'taxonomy_noncename' );
 
 		$class       = $this->indented ? 'taxonomydiv' : 'not-indented';
-		$class      .= 'category' !== $this->slug ? ' '. $this->slug .'div' : '';
+		$class      .= 'category' !== $this->slug ? ' ' . $this->slug . 'div' : '';
 		$class      .= ' tabs-panel';
 
 		$this->namefield    = 'category' == $this->slug ? 'post_category' : 'tax_input[' . $this->slug . ']';
@@ -207,7 +207,7 @@ class Taxonomy_Single_Term {
 	 */
 	public function radio_open() {
 		?>
-		<ul id="<?php echo $this->slug; ?>checklist" data-wp-lists="list:<?php echo $this->slug?>" class="categorychecklist form-no-clear">
+		<ul id="<?php echo $this->slug; ?>checklist" data-wp-lists="list:<?php echo $this->slug; ?>" class="categorychecklist form-no-clear">
 			<?php if ( ! $this->force_selection ) : ?>
 				<li style="display:none;">
 					<input id="taxonomy-<?php echo $this->slug; ?>-clear" type="radio" name="<?php echo $this->namefield; ?>" value="0" />
@@ -316,7 +316,7 @@ class Taxonomy_Single_Term {
 
 		$validated = (
 			$this->allow_new_terms
-			&& wp_verify_nonce( $nonce, 'taxonomy_'. $this->slug, '_add_term' )
+			&& wp_verify_nonce( $nonce, 'taxonomy_' . $this->slug, '_add_term' )
 			&& taxonomy_exists( $taxonomy )
 			&& ! term_exists( $term_name, $taxonomy )
 		);
@@ -340,20 +340,20 @@ class Taxonomy_Single_Term {
 
 		$field_name = $taxonomy == 'category'
 			? 'post_category'
-			: 'tax_input['. $taxonomy .']';
+			: 'tax_input[' . $taxonomy . ']';
 
 		$field_name = $this->taxonomy()->hierarchical
-			? $field_name .'[]'
+			? $field_name . '[]'
 			: $field_name;
 
 		$args = array(
-			'id'            => $taxonomy .'-'. $term->term_id,
+			'id'            => $taxonomy . '-' . $term->term_id,
 			'name'          => $field_name,
 			'value'         => $this->taxonomy()->hierarchical ? $term->term_id : $term->slug,
 			'checked'       => ' checked="checked"',
 			'selected'      => ' selected="selected"',
 			'disabled'      => '',
-			'label'         => esc_html( apply_filters('the_category', $term->name ) ),
+			'label'         => esc_html( apply_filters( 'the_category', $term->name ) ),
 		);
 
 		$output = '';
