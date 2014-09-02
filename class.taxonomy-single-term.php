@@ -272,7 +272,9 @@ class Taxonomy_Single_Term {
 		</p>
 		<script type="text/javascript">
 			jQuery(document).ready(function($){
-				$('#taxonomy-<?php echo $this->slug; ?>-new').click(function(){
+				$('#taxonomy-<?php echo $this->slug; ?>-new').click(function(e){
+					e.preventDefault();
+
 					var termName = prompt( "Add New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>", "New <?php echo esc_attr( $this->taxonomy()->labels->singular_name ); ?>" );
 
 					if( ! termName ) {
@@ -299,8 +301,6 @@ class Taxonomy_Single_Term {
 							}
 						});
 					}
-
-					return false;
 				});
 			});
 		</script>
@@ -318,8 +318,8 @@ class Taxonomy_Single_Term {
 
 		$validated = (
 			$this->allow_new_terms
-			&& wp_verify_nonce( $nonce, 'taxonomy_' . $this->slug, '_add_term' )
 			&& taxonomy_exists( $taxonomy )
+			&& wp_verify_nonce( $nonce, 'taxonomy_' . $taxonomy, '_add_term' )
 			&& ! term_exists( $term_name, $taxonomy )
 		);
 
