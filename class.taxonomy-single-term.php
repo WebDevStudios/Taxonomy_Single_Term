@@ -299,6 +299,8 @@ class Taxonomy_Single_Term {
 							}
 						});
 					}
+
+					return false;
 				});
 			});
 		</script>
