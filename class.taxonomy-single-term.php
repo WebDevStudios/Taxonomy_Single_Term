@@ -283,7 +283,8 @@ class Taxonomy_Single_Term {
 							'action'    : 'taxonomy_single_term_add',
 							'term_name' : termName,
 							'taxonomy'  : '<?php echo $this->slug; ?>',
-							'nonce'     : '<?php echo wp_create_nonce( 'taxonomy_'. $this->slug, '_add_term' ); ?>'
+							'nonce'     : '<?php echo wp_create_nonce( 'taxonomy_'. $this->slug, '_add_term' ); ?>',
+							'input_el'  : '<?php echo $this->input_element; ?>'
 						};
 						$.post( ajaxurl, data, function(response) {
 							window.console.log( 'response', response );
@@ -299,6 +300,7 @@ class Taxonomy_Single_Term {
 							}
 						});
 					}
+					return false;
 				});
 			});
 		</script>
@@ -313,12 +315,14 @@ class Taxonomy_Single_Term {
 		$nonce     = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
 		$term_name = isset( $_POST['term_name'] ) ? sanitize_text_field( $_POST['term_name'] ) : false;
 		$taxonomy  = isset( $_POST['taxonomy'] ) ? sanitize_text_field( $_POST['taxonomy'] ) : false;
+		$input_el  = isset( $_POST['input_el'] ) && in_array( $_POST['input_el'], array( 'radio', 'select' ) ) ? sanitize_text_field( $_POST['input_el'] ) : false;
 
 		$validated = (
 			$this->allow_new_terms
-			&& wp_verify_nonce( $nonce, 'taxonomy_' . $this->slug, '_add_term' )
+			&& wp_verify_nonce( $nonce, 'taxonomy_' . $taxonomy, '_add_term' )
 			&& taxonomy_exists( $taxonomy )
 			&& ! term_exists( $term_name, $taxonomy )
+			&& $input_el
 		);
 
 		if ( ! $validated ) {
@@ -337,32 +341,38 @@ class Taxonomy_Single_Term {
 			wp_send_json_error();
 		}
 
-
 		$field_name = $taxonomy == 'category'
 			? 'post_category'
 			: 'tax_input[' . $taxonomy . ']';
 
-		$field_name = $this->taxonomy()->hierarchical
+		// we don't have a reference to $this since we're here thanks to an AJAX call
+		$tax_obj = get_taxonomy( $term->taxonomy );
+
+		$field_name = $tax_obj->hierarchical
 			? $field_name . '[]'
 			: $field_name;
 
 		$args = array(
 			'id'            => $taxonomy . '-' . $term->term_id,
 			'name'          => $field_name,
-			'value'         => $this->taxonomy()->hierarchical ? $term->term_id : $term->slug,
+			'value'         => $tax_obj->hierarchical ? $term->term_id : $term->slug,
 			'checked'       => ' checked="checked"',
 			'selected'      => ' selected="selected"',
 			'disabled'      => '',
 			'label'         => esc_html( apply_filters( 'the_category', $term->name ) ),
 		);
 
+		// we still don't have a reference to $this
+		require_once( 'walker.taxonomy-single-term.php' );
+		$walker = new Taxonomy_Single_Term_Walker( $tax_obj->hierarchical, $input_el );
+
 		$output = '';
-		$output .= 'radio' == $this->input_element
-			? $this->walker()->start_el_radio( $args )
-			: $this->walker()->start_el_select( $args );
+		$output .= 'radio' == $input_el
+			? $walker->start_el_radio( $args )
+			: $walker->start_el_select( $args );
 
 		// $output is handled by reference
-		$this->walker()->end_el( $output, $term );
+		$walker->end_el( $output, $term );
 
 		wp_send_json_success( $output );
 
