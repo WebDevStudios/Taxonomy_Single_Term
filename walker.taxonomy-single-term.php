@@ -87,7 +87,8 @@ class Taxonomy_Single_Term_Walker extends Walker {
 			'checked'       => checked( $in_selected, true, false ),
 			'selected'      => selected( $in_selected, true, false ),
 			'disabled'      => disabled( empty( $args['disabled'] ), false, false ),
-			'label'         => esc_html( apply_filters('the_category', $term->name ) )
+			'label'         => esc_html( apply_filters('the_category', $term->name ) ),
+			'depth'         => $depth,
 		);
 
 		$output .= 'radio' == $this->input_element
@@ -127,13 +128,15 @@ class Taxonomy_Single_Term_Walker extends Walker {
 	 * @return string       Opening option element and option text
 	 */
 	public function start_el_select( $args ) {
+		$pad = str_repeat('&nbsp;', $args['depth'] * 3);
+
 		return "\n".sprintf(
 			'<option %s %s id="%s" value="%s" class="class-single-term">%s',
 			$args['selected'],
 			$args['disabled'],
 			$args['id'],
 			$args['value'],
-			$args['label']
+			$pad . $args['label']
 		);
 	}
 
