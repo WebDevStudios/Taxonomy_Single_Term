@@ -28,7 +28,7 @@ $custom_tax_mb->set( 'priority', 'low' );
 $custom_tax_mb->set( 'context', 'normal' );
 
 // Custom title for your metabox
-$custom_tax_mb->set( 'context', __( 'Custom Metabox Title', 'yourtheme' ) );
+$custom_tax_mb->set( 'metabox_title', __( 'Custom Metabox Title', 'yourtheme' ) );
 
 // Makes a selection required.
 $custom_tax_mb->set( 'force_selection', true );
