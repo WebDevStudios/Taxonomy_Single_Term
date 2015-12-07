@@ -297,7 +297,7 @@ class Taxonomy_Single_Term {
 								<?php endif; ?>
 								$('#<?php echo $this->slug; ?>checklist').append( response.data );
 							} else {
-								window.alert( '<?php printf( __( 'There was a problem adding a new %s' ), esc_attr( $this->taxonomy()->labels->singular_name ) ); ?>' );
+								window.alert( '<?php printf( __( 'There was a problem adding a new %s' ), esc_attr( $this->taxonomy()->labels->singular_name ) ); ?>: ' + "\n" + response.data );
 							}
 						});
 					}
@@ -315,16 +315,24 @@ class Taxonomy_Single_Term {
 		$nonce     = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
 		$term_name = isset( $_POST['term_name'] ) ? sanitize_text_field( $_POST['term_name'] ) : false;
 		$taxonomy  = isset( $_POST['taxonomy'] ) ? sanitize_text_field( $_POST['taxonomy'] ) : false;
+		
+		$friendly_taxonomy = $this->taxonomy()->labels->singular_name;
+		
+		// Ensure user is allowed to add new terms
+		if( !$this->allow_new_terms ) {
+			wp_send_json_error( __( "New $friendly_taxonomy terms are not allowed" ) );
+		}
 
-		$validated = (
-			$this->allow_new_terms
-			&& taxonomy_exists( $taxonomy )
-			&& wp_verify_nonce( $nonce, 'taxonomy_' . $taxonomy, '_add_term' )
-			&& ! term_exists( $term_name, $taxonomy )
-		);
+		if( !taxonomy_exists( $taxonomy ) ) {
+			wp_send_json_error( __( "Taxonomy $friendly_taxonomy does not exist. Cannot add term" ) );
+		}
 
-		if ( ! $validated ) {
-			wp_send_json_error();
+		if( !wp_verify_nonce( $nonce, 'taxonomy_' . $taxonomy, '_add_term' ) ) {
+			wp_send_json_error( __( "Cheatin' Huh? Could not verify security token" ) );
+		}
+
+		if( term_exists( $term_name, $taxonomy ) ) {
+			wp_send_json_error( __( "The term '$term_name' already exists in $friendly_taxonomy" ) );
 		}
 
 		$result = wp_insert_term( $term_name, $taxonomy );
