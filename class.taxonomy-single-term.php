@@ -320,19 +320,19 @@ class Taxonomy_Single_Term {
 		
 		// Ensure user is allowed to add new terms
 		if( !$this->allow_new_terms ) {
-			wp_send_json_error( "New $friendly_taxonomy terms are not allowed" );
+			wp_send_json_error( __( "New $friendly_taxonomy terms are not allowed" ) );
 		}
 
 		if( !taxonomy_exists( $taxonomy ) ) {
-			wp_send_json_error( "Taxonomy $friendly_taxonomy does not exist. Cannot add term" );
+			wp_send_json_error( __( "Taxonomy $friendly_taxonomy does not exist. Cannot add term" ) );
 		}
 
 		if( !wp_verify_nonce( $nonce, 'taxonomy_' . $taxonomy, '_add_term' ) ) {
-			wp_send_json_error( "Cheatin' Huh? Could not verify security token" );
+			wp_send_json_error( __( "Cheatin' Huh? Could not verify security token" ) );
 		}
 
 		if( term_exists( $term_name, $taxonomy ) ) {
-			wp_send_json_error( "The term '$term_name' already exists in $friendly_taxonomy" );
+			wp_send_json_error( __( "The term '$term_name' already exists in $friendly_taxonomy" ) );
 		}
 
 		$result = wp_insert_term( $term_name, $taxonomy );
