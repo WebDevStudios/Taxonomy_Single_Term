@@ -434,7 +434,7 @@ class Taxonomy_Single_Term {
 				$theList.find('.editinline').on( 'click', function() {
 					var $this = $(this);
 					setTimeout( function() {
-						var $editRow = $this.parents( 'tr' ).next();
+						var $editRow = $this.parents( 'tr' ).next().next();
 						changeToRadio( $editRow );
 					}, 50 );
 				});
