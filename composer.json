@@ -1,0 +1,7 @@
+{
+    "name": "WebDevStudios/Taxonomy_Single_Term",
+    "description": "Removes and replaces the built-in taxonomy WordPress metabox with a radio or select metabox.",
+    "type": "library",
+    "keywords": ["wordpress","metabox","terms","taxonomy"],
+    "homepage": "http://webdevstudios.com/"
+}
