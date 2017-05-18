@@ -149,7 +149,6 @@ class Taxonomy_Single_Term {
 	 * Process default value for settings
 	 * 
 	 * @param array $default
-	 * @param $tax_slug
 	 *
 	 * @return array
 	 */
