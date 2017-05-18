@@ -133,7 +133,7 @@ class Taxonomy_Single_Term {
 		$this->slug = $tax_slug;
 		$this->post_types = is_array( $post_types ) ? $post_types : array( $post_types );
 		$this->input_element = in_array( (string) $type, array( 'radio', 'select' ) ) ? $type : $this->input_element;
-		$this->default = $this->process_default( $default, $tax_slug );
+		$this->default = $this->process_default( $default );
 
 		add_action( 'add_meta_boxes', array( $this, 'add_input_element' ) );
 		add_action( 'admin_footer', array( $this, 'js_checkbox_transform' ) );
@@ -153,20 +153,20 @@ class Taxonomy_Single_Term {
 	 *
 	 * @return array
 	 */
-	protected function process_default( $default = array(), $tax_slug ) {
+	protected function process_default( $default = array() ) {
 		$default = (array) $default;
 
 		if ( empty( $default ) ) {
-			$default = array( (int) get_option( 'default_' . $tax_slug ) );
+			$default = array( (int) get_option( 'default_' . $this->slug ) );
 		}
 
 		foreach ( $default as $index => $default_item ) {
 			if ( is_numeric( $default_item ) ) {
 				continue;
 			}
-			$term = get_term_by( 'slug', $default_item, $tax_slug );
+			$term = get_term_by( 'slug', $default_item, $this->tax_slug );
 			if ( $term === false ) {
-				$term = get_term_by( 'name', $default_item, $tax_slug );
+				$term = get_term_by( 'name', $default_item, $this->tax_slug );
 			}
 			$default[ $index ] = ( $term instanceof WP_Term ) ? $term->term_id : false;
 		}
@@ -620,7 +620,7 @@ class Taxonomy_Single_Term {
 		}
 
 		if ( 'default' === $property ) {
-			$value = $this->process_default( $value, $this->slug );
+			$value = $this->process_default( $value );
 		}
 
 		$this->$property = $value;
