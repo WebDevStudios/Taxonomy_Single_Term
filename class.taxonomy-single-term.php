@@ -163,9 +163,9 @@ class Taxonomy_Single_Term {
 			if ( is_numeric( $default_item ) ) {
 				continue;
 			}
-			$term = get_term_by( 'slug', $default_item, $this->tax_slug );
+			$term = get_term_by( 'slug', $default_item, $this->slug );
 			if ( $term === false ) {
-				$term = get_term_by( 'name', $default_item, $this->tax_slug );
+				$term = get_term_by( 'name', $default_item, $this->slug );
 			}
 			$default[ $index ] = ( $term instanceof WP_Term ) ? $term->term_id : false;
 		}
