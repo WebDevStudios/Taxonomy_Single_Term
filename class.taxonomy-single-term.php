@@ -19,7 +19,7 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
  * @link  https://github.com/WebDevStudios/Taxonomy_Single_Term/blob/master/README.md
- * @version  0.2.1
+ * @version  0.2.2
  */
 class Taxonomy_Single_Term {
 
@@ -112,18 +112,28 @@ class Taxonomy_Single_Term {
 	 * @var boolean
 	 */
 	protected $allow_new_terms = false;
+	
+	/**
+	 * Default for the selector
+	 * @since 0.2.2
+	 * @var array
+	 */
+	protected $default = array();
 
 	/**
 	 * Initiates our metabox action
 	 * @since 0.1.0
 	 * @param string $tax_slug      Taxonomy slug
 	 * @param array  $post_types    post-types to display custom metabox
+	 * @param string $type 		display type radio or select
+	 * @param array  $default 	default for the taxonomy
 	 */
-	public function __construct( $tax_slug, $post_types = array(), $type = 'radio' ) {
+	public function __construct( $tax_slug, $post_types = array(), $type = 'radio', $default = array() ) {
 
 		$this->slug = $tax_slug;
 		$this->post_types = is_array( $post_types ) ? $post_types : array( $post_types );
 		$this->input_element = in_array( (string) $type, array( 'radio', 'select' ) ) ? $type : $this->input_element;
+		$this->default = $this->process_default( $default );
 
 		add_action( 'add_meta_boxes', array( $this, 'add_input_element' ) );
 		add_action( 'admin_footer', array( $this, 'js_checkbox_transform' ) );
@@ -134,6 +144,37 @@ class Taxonomy_Single_Term {
 			$this->bulk_edit_handler();
 		}
 	}
+	
+	/**
+	 * Process default value for settings
+	 * 
+	 * @param array $default
+	 * @param $tax_slug
+	 *
+	 * @return array
+	 */
+	protected function process_default( $default = array() ) {
+		$default = (array) $default;
+
+		if ( empty( $default ) ) {
+			$default = array( (int) get_option( 'default_' . $this->slug ) );
+		}
+
+		foreach ( $default as $index => $default_item ) {
+			if ( is_numeric( $default_item ) ) {
+				continue;
+			}
+			$term = get_term_by( 'slug', $default_item, $this->tax_slug );
+			if ( $term === false ) {
+				$term = get_term_by( 'name', $default_item, $this->tax_slug );
+			}
+			$default[ $index ] = ( $term instanceof WP_Term ) ? $term->term_id : false;
+		}
+
+		return array_filter( $default );
+	}
+	
+	
 
 	/**
 	 * Removes and replaces the built-in taxonomy metabox with our own.
@@ -252,13 +293,28 @@ class Taxonomy_Single_Term {
 	 * @since  0.2.0
 	 */
 	public function term_fields_list() {
-		wp_terms_checklist( get_the_ID(), array(
-			'taxonomy'      => $this->slug,
-			'selected_cats' => false,
-			'popular_cats'  => false,
-			'checked_ontop' => false,
-			'walker'        => $this->walker(),
-		) );
+		$default = wp_get_post_terms(
+			get_the_ID(),
+			$this->slug
+		);
+		
+		if ( is_wp_error( $default ) ) {
+			$default = array();
+		}
+		
+		$default[] = $this->default;
+		$default   = (array) current( $default );
+
+		wp_terms_checklist(
+			get_the_ID(),
+			array(
+				'taxonomy'      => $this->slug,
+				'selected_cats' => $default,
+				'popular_cats'  => false,
+				'checked_ontop' => false,
+				'walker'        => $this->walker(),
+			)
+		);
 	}
 
 	/**
@@ -559,9 +615,15 @@ class Taxonomy_Single_Term {
 	 */
 	public function set( $property, $value ) {
 
-		if ( property_exists( $this, $property ) ) {
-			$this->$property = $value;
+		if ( ! property_exists( $this, $property ) ) {
+			return $this;
 		}
+
+		if ( 'default' === $property ) {
+			$value = $this->process_default( $value );
+		}
+
+		$this->$property = $value;
 
 		return $this;
 	}
