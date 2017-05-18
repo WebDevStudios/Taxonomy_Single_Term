@@ -145,13 +145,23 @@ class Taxonomy_Single_Term {
 		}
 	}
 	
-	protected function process_default($default = array(), $tax_slug)  {
+	/**
+	 * Process default value for settings
+	 * 
+	 * @param array $default
+	 * @param $tax_slug
+	 *
+	 * @return array
+	 */
+	protected function process_default( $default = array(), $tax_slug ) {
+		$default = (array) $default;
+
 		if ( empty( $default ) ) {
 			$default = [ (int) get_option( 'default_' . $tax_slug ) ];
 		}
-		
+
 		foreach ( $default as $index => $default_item ) {
-			if ( is_numeric( $default_item) ) {
+			if ( is_numeric( $default_item ) ) {
 				continue;
 			}
 			$term = get_term_by( 'slug', $default_item, $tax_slug );
@@ -160,7 +170,7 @@ class Taxonomy_Single_Term {
 			}
 			$default[ $index ] = ( $term instanceof WP_Term ) ? $term->term_id : false;
 		}
-		
+
 		return array_filter( $default );
 	}
 	
@@ -590,9 +600,15 @@ class Taxonomy_Single_Term {
 	 */
 	public function set( $property, $value ) {
 
-		if ( property_exists( $this, $property ) ) {
-			$this->$property = $value;
+		if ( ! property_exists( $this, $property ) ) {
+			return $this;
 		}
+
+		if ( 'default' === $property ) {
+			$value = $this->process_default( $value, $this->taxonomy );
+		}
+
+		$this->$property = $value;
 
 		return $this;
 	}
