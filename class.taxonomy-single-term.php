@@ -293,13 +293,28 @@ class Taxonomy_Single_Term {
 	 * @since  0.2.0
 	 */
 	public function term_fields_list() {
-		wp_terms_checklist( get_the_ID(), array(
-			'taxonomy'      => $this->slug,
-			'selected_cats' => $this->default,
-			'popular_cats'  => false,
-			'checked_ontop' => false,
-			'walker'        => $this->walker(),
-		) );
+		$default = wp_get_post_terms(
+			get_the_ID(),
+			$this->slug
+		);
+		
+		if ( is_wp_error( $default ) ) {
+			$default = array();
+		}
+		
+		$default[] = $this->default;
+		$default   = (array) current( $default );
+
+		wp_terms_checklist(
+			get_the_ID(),
+			array(
+				'taxonomy'      => $this->slug,
+				'selected_cats' => $default,
+				'popular_cats'  => false,
+				'checked_ontop' => false,
+				'walker'        => $this->walker(),
+			)
+		);
 	}
 
 	/**
