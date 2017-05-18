@@ -118,7 +118,7 @@ class Taxonomy_Single_Term {
 	 * @since 0.2.2
 	 * @var array
 	 */
-	protected $default = [];
+	protected $default = array();
 
 	/**
 	 * Initiates our metabox action
@@ -157,7 +157,7 @@ class Taxonomy_Single_Term {
 		$default = (array) $default;
 
 		if ( empty( $default ) ) {
-			$default = [ (int) get_option( 'default_' . $tax_slug ) ];
+			$default = array( (int) get_option( 'default_' . $tax_slug ) );
 		}
 
 		foreach ( $default as $index => $default_item ) {
