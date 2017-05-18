@@ -19,7 +19,7 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
  * @link  https://github.com/WebDevStudios/Taxonomy_Single_Term/blob/master/README.md
- * @version  0.2.1
+ * @version  0.2.2
  */
 class Taxonomy_Single_Term {
 
@@ -112,18 +112,28 @@ class Taxonomy_Single_Term {
 	 * @var boolean
 	 */
 	protected $allow_new_terms = false;
+	
+	/**
+	 * Default for the selector
+	 * @since 0.2.2
+	 * @var array
+	 */
+	protected $default = [];
 
 	/**
 	 * Initiates our metabox action
 	 * @since 0.1.0
 	 * @param string $tax_slug      Taxonomy slug
 	 * @param array  $post_types    post-types to display custom metabox
+	 * @param string $type 		display type radio or select
+	 * @param array  $default 	default for the taxonomy
 	 */
-	public function __construct( $tax_slug, $post_types = array(), $type = 'radio' ) {
+	public function __construct( $tax_slug, $post_types = array(), $type = 'radio', $default = array() ) {
 
 		$this->slug = $tax_slug;
 		$this->post_types = is_array( $post_types ) ? $post_types : array( $post_types );
 		$this->input_element = in_array( (string) $type, array( 'radio', 'select' ) ) ? $type : $this->input_element;
+		$this->default = $this->process_default( $default, $tax_slug );
 
 		add_action( 'add_meta_boxes', array( $this, 'add_input_element' ) );
 		add_action( 'admin_footer', array( $this, 'js_checkbox_transform' ) );
@@ -134,6 +144,27 @@ class Taxonomy_Single_Term {
 			$this->bulk_edit_handler();
 		}
 	}
+	
+	protected function process_default($default = array(), $tax_slug)  {
+		if ( empty( $default ) ) {
+			$default = [ (int) get_option( 'default_' . $tax_slug ) ];
+		}
+		
+		foreach ( $default as $index => $default_item ) {
+			if ( is_numeric( $default_item) ) {
+				continue;
+			}
+			$term = get_term_by( 'slug', $default_item, $tax_slug );
+			if ( $term === false ) {
+				$term = get_term_by( 'name', $default_item, $tax_slug );
+			}
+			$default[ $index ] = ( $term instanceof WP_Term ) ? $term->term_id : false;
+		}
+		
+		return array_filter( $default );
+	}
+	
+	
 
 	/**
 	 * Removes and replaces the built-in taxonomy metabox with our own.
@@ -254,7 +285,7 @@ class Taxonomy_Single_Term {
 	public function term_fields_list() {
 		wp_terms_checklist( get_the_ID(), array(
 			'taxonomy'      => $this->slug,
-			'selected_cats' => false,
+			'selected_cats' => $this->default,
 			'popular_cats'  => false,
 			'checked_ontop' => false,
 			'walker'        => $this->walker(),
