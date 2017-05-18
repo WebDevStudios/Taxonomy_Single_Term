@@ -620,7 +620,7 @@ class Taxonomy_Single_Term {
 		}
 
 		if ( 'default' === $property ) {
-			$value = $this->process_default( $value, $this->taxonomy );
+			$value = $this->process_default( $value, $this->slug );
 		}
 
 		$this->$property = $value;
