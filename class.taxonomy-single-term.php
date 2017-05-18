@@ -577,11 +577,12 @@ class Taxonomy_Single_Term {
 	 * @return mixed     Property requested.
 	 */
 	public function __get( $property ) {
-		if ( property_exists( $this, $value ) ) {
+		
+		if ( property_exists( $this, $property ) ) {
 			return $this->{$property};
-		} else {
-			throw new Exception( 'Invalid '. __CLASS__ .' property: ' . $field );
 		}
+		
+		throw new Exception( 'Invalid '. __CLASS__ .' property: ' . $property );	
 	}
 
 }
