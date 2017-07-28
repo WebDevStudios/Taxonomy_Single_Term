@@ -19,7 +19,7 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
  * @link  https://github.com/WebDevStudios/Taxonomy_Single_Term/blob/master/README.md
- * @version  0.2.2
+ * @version  0.2.3
  */
 class Taxonomy_Single_Term {
 
@@ -112,7 +112,7 @@ class Taxonomy_Single_Term {
 	 * @var boolean
 	 */
 	protected $allow_new_terms = false;
-	
+
 	/**
 	 * Default for the selector
 	 * @since 0.2.2
@@ -144,10 +144,10 @@ class Taxonomy_Single_Term {
 			$this->bulk_edit_handler();
 		}
 	}
-	
+
 	/**
 	 * Process default value for settings
-	 * 
+	 *
 	 * @param array $default
 	 *
 	 * @return array
@@ -172,8 +172,6 @@ class Taxonomy_Single_Term {
 
 		return array_filter( $default );
 	}
-	
-	
 
 	/**
 	 * Removes and replaces the built-in taxonomy metabox with our own.
@@ -202,6 +200,7 @@ class Taxonomy_Single_Term {
 	 * @todo Abstract inline javascript to it's own file and localize it
 	 */
 	public function input_element() {
+		do_action( 'taxonomy_single_term_metabox_top', $this );
 
 		// uses same noncename as default box so no save_post hook needed
 		wp_nonce_field( 'taxonomy_'. $this->slug, 'taxonomy_noncename' );
@@ -227,6 +226,7 @@ class Taxonomy_Single_Term {
 			<div style="clear:both;"></div>
 		</div>
 		<?php
+		do_action( 'taxonomy_single_term_metabox_bottom', $this );
 	}
 
 	/**
@@ -296,11 +296,11 @@ class Taxonomy_Single_Term {
 			get_the_ID(),
 			$this->slug
 		);
-		
+
 		if ( is_wp_error( $default ) ) {
 			$default = array();
 		}
-		
+
 		$default[] = $this->default;
 		$default   = (array) current( $default );
 
@@ -370,9 +370,9 @@ class Taxonomy_Single_Term {
 		$nonce     = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
 		$term_name = isset( $_POST['term_name'] ) ? sanitize_text_field( $_POST['term_name'] ) : false;
 		$taxonomy  = isset( $_POST['taxonomy'] ) ? sanitize_text_field( $_POST['taxonomy'] ) : false;
-		
+
 		$friendly_taxonomy = $this->taxonomy()->labels->singular_name;
-		
+
 		// Ensure user is allowed to add new terms
 		if( !$this->allow_new_terms ) {
 			wp_send_json_error( __( "New $friendly_taxonomy terms are not allowed" ) );
@@ -401,7 +401,6 @@ class Taxonomy_Single_Term {
 		if ( ! isset( $term->term_id ) ) {
 			wp_send_json_error();
 		}
-
 
 		$field_name = $taxonomy == 'category'
 			? 'post_category'
@@ -638,12 +637,12 @@ class Taxonomy_Single_Term {
 	 * @return mixed     Property requested.
 	 */
 	public function __get( $property ) {
-		
+
 		if ( property_exists( $this, $property ) ) {
 			return $this->{$property};
 		}
-		
-		throw new Exception( 'Invalid '. __CLASS__ .' property: ' . $property );	
+
+		throw new Exception( 'Invalid '. __CLASS__ .' property: ' . $property );
 	}
 
 }

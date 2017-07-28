@@ -1,7 +1,7 @@
 Taxonomy_Single_Term
 ==================
 
-Version: 0.2.2
+Version: 0.2.3
 
 Taxonomies in WordPress are super powerful. The purpose of taxonomies is to create relationships among post types. Unfortunately the UI doesn't effectively enforce limiting to a single term.
 
@@ -50,6 +50,9 @@ $custom_tax_mb->set( 'default', 123 ); // default term_id
 ```
 
 #### Change Log
+**0.2.3**
+* Add hooks to the metabox, `taxonomy_single_term_metabox_bottom` and `taxonomy_single_term_metabox_top`.
+
 **0.2.2**
 * Add default to options. Props [@BinaryKitten](https://github.com/BinaryKitten)
 * Add default setter
