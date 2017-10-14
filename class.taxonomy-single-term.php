@@ -301,8 +301,9 @@ class Taxonomy_Single_Term {
 			$default = array();
 		}
 
-		$default[] = $this->default;
+		//$default[] = $this->default;
 		$default   = (array) current( $default );
+		unset ($default['term_taxonomy_id']);
 
 		wp_terms_checklist(
 			get_the_ID(),
