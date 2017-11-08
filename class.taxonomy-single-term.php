@@ -19,7 +19,7 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
  * @link  https://github.com/WebDevStudios/Taxonomy_Single_Term/blob/master/README.md
- * @version  0.2.1
+ * @version  0.2.3
  */
 class Taxonomy_Single_Term {
 
@@ -114,16 +114,26 @@ class Taxonomy_Single_Term {
 	protected $allow_new_terms = false;
 
 	/**
+	 * Default for the selector
+	 * @since 0.2.2
+	 * @var array
+	 */
+	protected $default = array();
+
+	/**
 	 * Initiates our metabox action
 	 * @since 0.1.0
 	 * @param string $tax_slug      Taxonomy slug
 	 * @param array  $post_types    post-types to display custom metabox
+	 * @param string $type 		display type radio or select
+	 * @param array  $default 	default for the taxonomy
 	 */
-	public function __construct( $tax_slug, $post_types = array(), $type = 'radio' ) {
+	public function __construct( $tax_slug, $post_types = array(), $type = 'radio', $default = array() ) {
 
 		$this->slug = $tax_slug;
 		$this->post_types = is_array( $post_types ) ? $post_types : array( $post_types );
 		$this->input_element = in_array( (string) $type, array( 'radio', 'select' ) ) ? $type : $this->input_element;
+		$this->default = $this->process_default( $default );
 
 		add_action( 'add_meta_boxes', array( $this, 'add_input_element' ) );
 		add_action( 'admin_footer', array( $this, 'js_checkbox_transform' ) );
@@ -133,6 +143,34 @@ class Taxonomy_Single_Term {
 		if ( isset( $_REQUEST['bulk_edit'] ) && 'Update' == $_REQUEST['bulk_edit'] ) {
 			$this->bulk_edit_handler();
 		}
+	}
+
+	/**
+	 * Process default value for settings
+	 *
+	 * @param array $default
+	 *
+	 * @return array
+	 */
+	protected function process_default( $default = array() ) {
+		$default = (array) $default;
+
+		if ( empty( $default ) ) {
+			$default = array( (int) get_option( 'default_' . $this->slug ) );
+		}
+
+		foreach ( $default as $index => $default_item ) {
+			if ( is_numeric( $default_item ) ) {
+				continue;
+			}
+			$term = get_term_by( 'slug', $default_item, $this->slug );
+			if ( $term === false ) {
+				$term = get_term_by( 'name', $default_item, $this->slug );
+			}
+			$default[ $index ] = ( $term instanceof WP_Term ) ? $term->term_id : false;
+		}
+
+		return array_filter( $default );
 	}
 
 	/**
@@ -162,6 +200,7 @@ class Taxonomy_Single_Term {
 	 * @todo Abstract inline javascript to it's own file and localize it
 	 */
 	public function input_element() {
+		do_action( 'taxonomy_single_term_metabox_top', $this );
 
 		// uses same noncename as default box so no save_post hook needed
 		wp_nonce_field( 'taxonomy_'. $this->slug, 'taxonomy_noncename' );
@@ -187,6 +226,7 @@ class Taxonomy_Single_Term {
 			<div style="clear:both;"></div>
 		</div>
 		<?php
+		do_action( 'taxonomy_single_term_metabox_bottom', $this );
 	}
 
 	/**
@@ -252,13 +292,28 @@ class Taxonomy_Single_Term {
 	 * @since  0.2.0
 	 */
 	public function term_fields_list() {
-		wp_terms_checklist( get_the_ID(), array(
-			'taxonomy'      => $this->slug,
-			'selected_cats' => false,
-			'popular_cats'  => false,
-			'checked_ontop' => false,
-			'walker'        => $this->walker(),
-		) );
+		$default = wp_get_post_terms(
+			get_the_ID(),
+			$this->slug
+		);
+
+		if ( is_wp_error( $default ) ) {
+			$default = array();
+		}
+
+		$default[] = $this->default;
+		$default   = (array) current( $default );
+
+		wp_terms_checklist(
+			get_the_ID(),
+			array(
+				'taxonomy'      => $this->slug,
+				'selected_cats' => $default,
+				'popular_cats'  => false,
+				'checked_ontop' => false,
+				'walker'        => $this->walker(),
+			)
+		);
 	}
 
 	/**
@@ -297,7 +352,7 @@ class Taxonomy_Single_Term {
 								<?php endif; ?>
 								$('#<?php echo $this->slug; ?>checklist').append( response.data );
 							} else {
-								window.alert( '<?php printf( __( 'There was a problem adding a new %s' ), esc_attr( $this->taxonomy()->labels->singular_name ) ); ?>' );
+								window.alert( '<?php printf( __( 'There was a problem adding a new %s' ), esc_attr( $this->taxonomy()->labels->singular_name ) ); ?>: ' + "\n" + response.data );
 							}
 						});
 					}
@@ -316,15 +371,23 @@ class Taxonomy_Single_Term {
 		$term_name = isset( $_POST['term_name'] ) ? sanitize_text_field( $_POST['term_name'] ) : false;
 		$taxonomy  = isset( $_POST['taxonomy'] ) ? sanitize_text_field( $_POST['taxonomy'] ) : false;
 
-		$validated = (
-			$this->allow_new_terms
-			&& taxonomy_exists( $taxonomy )
-			&& wp_verify_nonce( $nonce, 'taxonomy_' . $taxonomy, '_add_term' )
-			&& ! term_exists( $term_name, $taxonomy )
-		);
+		$friendly_taxonomy = $this->taxonomy()->labels->singular_name;
 
-		if ( ! $validated ) {
-			wp_send_json_error();
+		// Ensure user is allowed to add new terms
+		if( !$this->allow_new_terms ) {
+			wp_send_json_error( __( "New $friendly_taxonomy terms are not allowed" ) );
+		}
+
+		if( !taxonomy_exists( $taxonomy ) ) {
+			wp_send_json_error( __( "Taxonomy $friendly_taxonomy does not exist. Cannot add term" ) );
+		}
+
+		if( !wp_verify_nonce( $nonce, 'taxonomy_' . $taxonomy, '_add_term' ) ) {
+			wp_send_json_error( __( "Cheatin' Huh? Could not verify security token" ) );
+		}
+
+		if( term_exists( $term_name, $taxonomy ) ) {
+			wp_send_json_error( __( "The term '$term_name' already exists in $friendly_taxonomy" ) );
 		}
 
 		$result = wp_insert_term( $term_name, $taxonomy );
@@ -338,7 +401,6 @@ class Taxonomy_Single_Term {
 		if ( ! isset( $term->term_id ) ) {
 			wp_send_json_error();
 		}
-
 
 		$field_name = $taxonomy == 'category'
 			? 'post_category'
@@ -426,7 +488,7 @@ class Taxonomy_Single_Term {
 				$theList.find('.editinline').on( 'click', function() {
 					var $this = $(this);
 					setTimeout( function() {
-						var $editRow = $this.parents( 'tr' ).next();
+						var $editRow = $this.parents( 'tr' ).next().next();
 						changeToRadio( $editRow );
 					}, 50 );
 				});
@@ -551,9 +613,15 @@ class Taxonomy_Single_Term {
 	 */
 	public function set( $property, $value ) {
 
-		if ( property_exists( $this, $property ) ) {
-			$this->$property = $value;
+		if ( ! property_exists( $this, $property ) ) {
+			return $this;
 		}
+
+		if ( 'default' === $property ) {
+			$value = $this->process_default( $value );
+		}
+
+		$this->$property = $value;
 
 		return $this;
 	}
@@ -569,11 +637,12 @@ class Taxonomy_Single_Term {
 	 * @return mixed     Property requested.
 	 */
 	public function __get( $property ) {
-		if ( property_exists( $this, $value ) ) {
+
+		if ( property_exists( $this, $property ) ) {
 			return $this->{$property};
-		} else {
-			throw new Exception( 'Invalid '. __CLASS__ .' property: ' . $field );
 		}
+
+		throw new Exception( 'Invalid '. __CLASS__ .' property: ' . $property );
 	}
 
 }
