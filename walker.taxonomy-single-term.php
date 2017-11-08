@@ -81,9 +81,9 @@ class Taxonomy_Single_Term_Walker extends Walker {
 		$in_selected   = in_array( $term->term_id, $selected_cats );
 
 		$args = array(
-			'id'            => $taxonomy .'-'. $term->term_id,
-			'name'          => $name,
-			'value'         => $value,
+			'id'            => esc_attr( $taxonomy .'-'. $term->term_id ),
+			'name'          => esc_attr( $name ),
+			'value'         => esc_attr( $value ),
 			'checked'       => checked( $in_selected, true, false ),
 			'selected'      => selected( $in_selected, true, false ),
 			'disabled'      => disabled( empty( $args['disabled'] ), false, false ),
