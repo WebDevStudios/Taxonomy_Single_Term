@@ -291,9 +291,10 @@ class Taxonomy_Single_Term {
 	 * wp_terms_checklist wrapper which outputs the terms list
 	 * @since  0.2.0
 	 */
-	public function term_fields_list() {
+	public function term_fields_list( $post_id = null, $args = array() ) {
+		$post_id = $post_id ? $post_id : get_the_ID();
 		$default = wp_get_post_terms(
-			get_the_ID(),
+			$post_id,
 			$this->slug
 		);
 
@@ -304,16 +305,19 @@ class Taxonomy_Single_Term {
 		$default[] = $this->default;
 		$default   = (array) current( $default );
 
-		wp_terms_checklist(
-			get_the_ID(),
-			array(
-				'taxonomy'      => $this->slug,
-				'selected_cats' => $default,
-				'popular_cats'  => false,
-				'checked_ontop' => false,
-				'walker'        => $this->walker(),
-			)
-		);
+		$args = wp_parse_args( $args, array(
+			'taxonomy'      => $this->slug,
+			'selected_cats' => $default,
+			'popular_cats'  => false,
+			'checked_ontop' => false,
+			'walker'        => $this->walker(),
+		) );
+
+		$result = wp_terms_checklist( $post_id, $args );
+
+		if ( isset( $args['echo'] ) && ! $args['echo'] ) {
+			return $result;
+		}
 	}
 
 	/**
