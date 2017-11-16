@@ -19,9 +19,15 @@ if ( ! class_exists( 'Taxonomy_Single_Term' ) ) :
  *
  * @link  http://codex.wordpress.org/Function_Reference/add_meta_box#Parameters
  * @link  https://github.com/WebDevStudios/Taxonomy_Single_Term/blob/master/README.md
- * @version  0.2.3
+ * @version  0.2.4
  */
 class Taxonomy_Single_Term {
+
+	/**
+	 * For version/feature-checking.
+	 * @since 0.2.4
+	 */
+	const VERSION = '0.2.4';
 
 	/**
 	 * Post types where metabox should be replaced (defaults to all post_types associated with taxonomy)
