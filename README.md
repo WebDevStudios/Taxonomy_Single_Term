@@ -52,6 +52,8 @@ $custom_tax_mb->set( 'default', 123 ); // default term_id
 #### Change Log
 **0.2.4**
 * Make `Taxonomy_Single_Term::term_fields_list()` more versatile.
+* Escape attributes. Props [@rnaby](https://github.com/rnaby), [#25](https://github.com/WebDevStudios/Taxonomy_Single_Term/pull/25).
+* Fix some issues with the selected functionality. See [#24](https://github.com/WebDevStudios/Taxonomy_Single_Term/pull/24).
 
 **0.2.3**
 * Add hooks to the metabox, `taxonomy_single_term_metabox_bottom` and `taxonomy_single_term_metabox_top`.
