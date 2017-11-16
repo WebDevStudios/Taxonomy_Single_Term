@@ -298,22 +298,20 @@ class Taxonomy_Single_Term {
 	 * @since  0.2.0
 	 */
 	public function term_fields_list( $post_id = null, $args = array() ) {
-		$post_id = $post_id ? $post_id : get_the_ID();
-		$default = wp_get_post_terms(
-			$post_id,
-			$this->slug
-		);
+		$post_id  = $post_id ? $post_id : get_the_ID();
+		$selected = wp_get_post_terms( $post_id, $this->slug );
 
-		if ( is_wp_error( $default ) ) {
-			$default = array();
+		$selected = is_wp_error( $selected ) || empty( $selected )
+			? $this->default
+			: array_shift( $selected );
+
+		if ( isset( $selected->term_id ) ) {
+			$selected = $selected->term_id;
 		}
-
-		$default[] = $this->default;
-		$default   = (array) current( $default );
 
 		$args = wp_parse_args( $args, array(
 			'taxonomy'      => $this->slug,
-			'selected_cats' => $default,
+			'selected_cats' => $selected,
 			'popular_cats'  => false,
 			'checked_ontop' => false,
 			'walker'        => $this->walker(),
