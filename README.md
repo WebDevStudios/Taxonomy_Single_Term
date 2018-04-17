@@ -9,6 +9,8 @@ This library helps you remove and replace the built-in taxonomy metabox with a r
 
 _**Read more**: [How To: Replace WordPress Default Taxonomy Metabox with a Radio Select Metabox](http://webdevstudios.com/2013/07/08/replace-wordpress-default-taxonomy-metabox-with-a-radio-select-metabox/)_
 
+<a href="https://webdevstudios.com/contact/"><img src="https://webdevstudios.com/wp-content/uploads/2018/04/wds-github-banner.png" alt="WebDevStudios. WordPress for big brands."></a>
+
 Usage
 ------------
 
