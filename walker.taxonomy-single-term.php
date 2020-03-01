@@ -10,7 +10,7 @@ if ( ! class_exists( 'Taxonomy_Single_Term_Walker' ) && class_exists( 'Walker' )
  * @see wp_terms_checklist()
  * @since 0.1.2
  */
-class Taxonomy_Single_Term_Walker extends Walker {
+class Taxonomy_Single_Term_Walker extends \Walker {
 	public $tree_type = 'category';
 	public $db_fields = array( 'parent' => 'parent', 'id' => 'term_id' ); //TODO: decouple this
 
