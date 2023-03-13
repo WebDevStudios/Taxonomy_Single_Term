@@ -146,7 +146,7 @@ class Taxonomy_Single_Term {
 		add_action( 'wp_ajax_taxonomy_single_term_add', array( $this, 'ajax_add_term' ) );
 
 		// Handle bulk-editing
-		if ( isset( $_REQUEST['bulk_edit'] ) && 'Update' == $_REQUEST['bulk_edit'] ) {
+		if ( isset( $_REQUEST['bulk_edit'] ) && __( 'Update' ) == $_REQUEST['bulk_edit'] ) {
 			$this->bulk_edit_handler();
 		}
 	}
